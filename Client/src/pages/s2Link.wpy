@@ -1,0 +1,75 @@
+<style lang="less">
+@import "./src/assets/unit.less";
+@import "./src/assets/s0Style.less";
+
+.container {
+  color: #fff;
+  .title {
+    font-size: 1rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+  }
+  .desc {
+    font-size: @fontUnit;
+    font-weight: @weightLight;
+  }
+}
+
+.LoginButton {
+  margin-bottom: 1rem;
+}
+
+button {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: @weightSemibold;
+  color: rgba(74, 74, 74, 1);
+  background-color: #fff;
+}
+
+</style>
+<template>
+  <view class="container">
+    <view class="title">等待授权微信</view>
+    <view class="desc">授权微信用户信息即可免账户密码自动登入</view>
+  </view>
+  <view class="bottomArea posa">
+    <button class="baseController LoginButton" open-type="getUserInfo" lang="zh_CN" @getuserinfo="onGotUserInfo">授权用户信息</button>
+    <view @tap="jumpto" class="text">暂时跳过</view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import utils from '../utils/utils.js'
+
+export default class Index extends wepy.page {
+  config = {
+    navigationBarTitleText: '微信关联',
+    navigationBarTextStyle: 'white',
+    navigationBarBackgroundColor: '#221D1C',
+    backgroundColor: '#221D1C',
+    disableScroll: true
+  }
+  data = {
+    username: ''
+  }
+  methods = {
+    jumpto() {
+      console.log('jumpto')
+      // wx.switchTab({ url: '/pages/index' })
+      utils.goIndex()
+    },
+    async onGotUserInfo() {
+      let res = await wepy.login()
+      this.$parent.getUserInfo()
+      let resCodetosession = await utils.apiSync('login/codetosession/' + res.code)
+      await utils.apiSync('users/link/' + this.username + '/' + resCodetosession.openid)
+      utils.goIndex()
+    }
+  }
+  onLoad(option) {
+    this.username = option.username
+  }
+}
+
+</script>

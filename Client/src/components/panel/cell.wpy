@@ -1,0 +1,253 @@
+<style lang="less">
+  @import (less) "./src/assets/unit.less";
+
+// 单元格基础设定
+.cellRepeat {
+  .cell {
+    height: 3rem;
+    line-height: 3rem;
+    background: rgba(255, 255, 255, 1);
+    display: flex;
+    padding-left: @paddingUnit;
+    padding-right: @paddingUnit;
+    align-items: center;
+    font-size: @fontUnit;
+    .text {
+      flex: 1;
+      min-width: 80px;
+      font-weight: @weightSemibold;
+      color: rgba(74, 74, 74, 1);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .value {
+      text-align: right;
+      font-weight: @weightLight;
+      color: rgba(74, 74, 74, 1);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  } // 分割线
+  .onTop {
+    background-color: #EBEBEB;
+    height: 1px;
+  }
+
+  .onBottom+.onTop {
+    margin-left: @fontUnit;
+    background-color: #EBEBEB;
+    height: 1px;
+  } // 右边小图标
+  .icon {
+    height: 3rem;
+    line-height: 3rem;
+    margin-left: 8px;
+  }
+
+  .icon image {
+    height: 8px;
+    width: 8px;
+    background-position: center;
+    color: #4A4A4A;
+  }
+}
+
+// 寻找最后一根分割线
+.cellRepeat>.line:last-child {
+  background-color: #EBEBEB;
+  height: 1px;
+  margin-bottom: @paddingUnit;
+}
+
+// 补充设定
+// ----------
+.inputPlaceholder {
+  opacity: 0.3;
+}
+
+.viewHover {
+  opacity: 0.2;
+}
+
+.viewClickable {
+  min-width: 80px;
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+}
+
+input {
+  height: @fontUnit;
+  font-size: @fontUnit;
+  line-height: @fontUnit;
+}
+
+// 特定样式设定
+// ----------
+.ValueNext {
+  display: flex;
+  align-items: baseline;
+}
+
+.Value {
+  display: flex;
+  align-items: baseline;
+}
+
+
+.ValueView {
+  .value {
+    opacity: 0.6;
+  }
+}
+
+.ValueButton {
+  display: flex;
+  align-items: center;
+  .value {
+    font-size: @fontUnit * 0.8;
+    padding-right: @paddingUnit;
+  }
+}
+
+.SwitchButton {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  button {
+    margin-left: @paddingUnit/2;
+  }
+}
+
+.TagNext {
+  .value {
+    background: rgba(46, 230, 116, 1);
+    border-radius: 3px;
+    font-size: @fontUnit * 0.8;
+    font-weight: @weightSemibold !important;
+    line-height: 1rem;
+    padding: 0.15rem 0.4rem 0.1rem;
+    color: #fff !important;
+  }
+}
+
+.LeftButton {
+  .viewClickable {
+    justify-content: flex-start;
+  }
+}
+
+</style>
+<template>
+  <view class="line onTop" />
+  <view class="cell">
+    <view wx:if="{{item.type != 'LeftButton'}}" class="text">{{item.text}}</view>
+    <!-- ValueNext -->
+    <view @tap="tap" wx:if="{{item.type == 'ValueNext'}}" class="{{item.type}} viewClickable" hover hover-class="viewHover">
+      <view wx:if="{{item.value != ''}}" class="value">{{item.value}}</view>
+      <view class="icon">
+        <image src="/assets/light/chevron-right.svg" mode="aspectFit" />
+      </view>
+    </view>
+    <!-- TagNext -->
+    <view @tap="tap" wx:if="{{item.type == 'TagNext'}}" class="{{item.type}} viewClickable" hover hover-class="viewHover">
+      <view wx:if="{{item.value != ''}}" class="value">{{item.value}}</view>
+      <view class="icon">
+        <image src="/assets/light/chevron-right.svg" mode="aspectFit" />
+      </view>
+    </view>
+    <!-- Plus -->
+    <view @tap="tap" wx:if="{{item.type == 'Plus'}}" class="{{item.type}} viewClickable" hover hover-class="viewHover">
+      <view class="icon">
+        <image src="/assets/light/plus.svg" mode="aspectFit" />
+      </view>
+    </view>
+    <!-- ValueView -->
+    <view @tap="tap" wx:if="{{item.type == 'ValueView'}}" class="{{item.type}} viewClickable">
+      <view class="value">{{item.value}}</view>
+    </view>
+    <!-- ValueButton -->
+    <view @tap="tap" wx:if="{{item.type == 'ValueButton'}}" class="{{item.type}} viewClickable" hover hover-class="viewHover">
+      <view class="value">{{item.value}}</view>
+      <button class="bGreen">{{item.typeData.buttonName}}</button>
+    </view>
+    <!-- Value -->
+    <view wx:if="{{item.type == 'Value'}}" class="{{item.type}} {{item.class}}" >
+      <input class="value" value="" type="{{item.typeData.type}}" placeholder="{{item.value}}" maxlength="80" placeholder-class="inputPlaceholder" bindinput="tap" bindfocus="focus" />
+    </view>
+    <!-- SwitchButton -->
+    <view @tap="tap" wx:if="{{item.type == 'SwitchButton'}}" class="{{item.type}}">
+      <button class="{{item.typeData.activateClassA}}">{{item.typeData.valueA}}</button>
+      <button class="{{item.typeData.activateClassB}}">{{item.typeData.valueB}}</button>
+    </view>
+    <!-- Button -->
+    <view @tap="tap" wx:if="{{item.type == 'Button'}}" class="{{item.type}} viewClickable" hover hover-class="viewHover">
+      <view class="flex1"></view>
+      <button class="bGreen">{{item.typeData.buttonName}}</button>
+    </view>
+    <!-- LeftButton -->
+    <view @tap="tap" wx:if="{{item.type == 'LeftButton'}}" class="{{item.type}} viewClickable" hover hover-class="viewHover">
+      <button class="bGreen">{{item.text}}</button>
+      <view class="flex1"></view>
+    </view>
+  </view>
+  <view class="line onBottom " />
+</template>
+<script>
+import wepy from 'wepy'
+
+export default class cellTitle extends wepy.component {
+  props = {
+    item: {}
+  }
+  data = {
+    item: {
+      fn: '',
+      type: '',
+      text: '',
+      next: '',
+      class: ''
+    }
+  }
+  methods = {
+    focus(value, height) {},
+    tap(e) {
+      var inputValue = e.detail.value || ''
+
+      // 特殊控件處理
+      switch (this.item.type) {
+        case 'TagNext':
+        case 'ValueNext':
+        case 'Plus':
+          if (typeof this.item.next !== 'undefined') {
+            wepy.navigateTo({
+              url: this.item.next
+            })
+          }
+          break
+        case 'SwitchButton':
+          var tmpA = this.item.typeData.activateClassA
+          var tmpB = this.item.typeData.activateClassB
+          if (tmpA === '') {
+            inputValue = 'A'
+          } else {
+            inputValue = 'B'
+          }
+
+          this.item.typeData.activateClassA = tmpB
+          this.item.typeData.activateClassB = tmpA
+          break
+      }
+
+      this.$emit('fn', this.item.fn, inputValue)
+    }
+  }
+
+  onLoad() {
+
+  }
+}
+
+</script>

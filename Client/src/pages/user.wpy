@@ -1,0 +1,174 @@
+<style lang="less">
+</style>
+<template>
+  <view class="container">
+    <view class="cellRepeat">
+      <title :title.sync="title" />
+      <repeat for="{{list}}" key="index" index="index" item="item">
+        <cell :item="item" @fn.user="cellFn" />
+      </repeat>
+    </view>
+    <view class="cellRepeat">
+      <title2 :title.sync="title2" />
+      <repeat for="{{list2}}" key="index" index="index" item="item">
+        <cell2 :item="item" @fn.user="cellFn" />
+      </repeat>
+    </view>
+    <centerText :text.sync="text" />
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import title from '../components/panel/title'
+import cell from '../components/panel/cell'
+import centerText from '../components/panel/centerText'
+// import utils from '../utils/utils.js'
+
+export default class Index extends wepy.page {
+  config = {
+    navigationBarTitleText: '用户中心'
+  }
+  components = {
+    title: title,
+    title2: title,
+    cell: cell,
+    cell2: cell,
+    centerText: centerText
+  }
+  data = {
+    title: '',
+    title2: '',
+    list: [],
+    list2: [],
+    text: 'Version 0.0.2 2019年01月14日'
+  }
+  methods = {
+    cellFn(action, evt) {
+      let self = this
+      switch (action) {
+        case 'logout':
+          wx.clearStorage({
+            success: function(res) {
+              console.log('clearStorage')
+              self.$parent.globalData.userInfo = null
+              wx.reLaunch({
+                url: '/pages/welcome'
+              })
+            }
+          })
+          break
+        default:
+          console.log('no action')
+      }
+    }
+  }
+  events = {}
+  onLoad() {
+    if (wepy.$instance.globalData.userLv === 0) {
+      this.Administrator()
+    }
+    if (wepy.$instance.globalData.userLv === 1) {
+      this.Salesman()
+    }
+    if (wepy.$instance.globalData.userLv === 2) {
+      this.Shop()
+    }
+
+    if (wepy.$instance.globalData.userLv === 9) {
+      // 訪客
+      this.list.push({
+        type: 'ValueNext',
+        text: '登入',
+        value: '访客',
+        next: '/pages/welcome'
+      })
+    } else {
+      // 已登入
+      var nickName = ''
+      // 重置密码
+      this.list.push({
+        fn: 'logout',
+        type: 'ValueNext',
+        text: '登出',
+        value: nickName
+      })
+      this.list.push({
+        type: 'ValueNext',
+        text: '重置密码',
+        next: '/pages/users/resetPassword'
+      })
+    }
+
+    this.$apply()
+  }
+  Salesman() {
+    this.title = '业务员资料'
+    this.list = [{
+      type: 'ValueView',
+      text: '业务员代码',
+      value: this.$parent.globalData.apiUser.loginCode
+    }]
+    this.title2 = '店铺'
+    this.list2 = [{
+      text: '签约店铺',
+      type: 'ValueNext',
+      next: '/pages/shop/list'
+    }, {
+      text: '登记新店铺',
+      type: 'Plus',
+      next: '/pages/users/newUser?by=Salesman'
+    }]
+  }
+  Shop() {
+    this.title = '店铺资料'
+    this.list = [{
+        type: 'ValueView',
+        text: '店铺代码',
+        value: this.$parent.globalData.apiUser.loginCode
+      },
+      {
+        type: 'ValueView',
+        text: '合作业务员',
+        value: this.$parent.globalData.apiUser.inviteCode
+      }
+    ]
+    this.title2 = '订单'
+    this.list2 = [{
+      text: '全部订单',
+      type: 'ValueNext',
+      next: '/pages/order/list'
+    }]
+  }
+  Administrator() {
+    this.title = '用戶'
+    this.list = [{
+      type: 'ValueView',
+      text: '用户类别',
+      value: this.$parent.globalData.role
+    }]
+    this.title2 = '功能'
+    this.list2 = [{
+        type: 'ValueNext',
+        text: '新增用户',
+        next: '/pages/users/newUser'
+      },
+      {
+        fn: 'allUser',
+        type: 'ValueNext',
+        text: '查看所有用户',
+        next: '/pages/users/allUser'
+      }, {
+        fn: 'newProduct',
+        text: '添加商品',
+        type: 'ValueNext',
+        next: '/pages/product/new'
+      }, {
+        text: '全部订单',
+        type: 'ValueNext',
+        next: '/pages/order/list'
+      }
+    ]
+  }
+}
+
+</script>

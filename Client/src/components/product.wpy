@@ -1,0 +1,55 @@
+<style lang="less">
+@import "./src/assets/unit.less";
+
+.product {
+  padding-bottom: 0.8rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.product-name {
+  padding-top: 0.38rem;
+  text-align: center;
+  font-size: 0.63rem;
+  font-weight: 400;
+  color: rgba(155, 155, 155, 1);
+  line-height: 0.88rem;
+  max-width: 163px;
+  word-wrap: break-word;
+}
+
+.product-size {
+  width: 163px;
+  height: 196px;
+}
+
+.product-image {
+  background-color: #fff;
+}
+
+.product-pos {
+  left: 0;
+  top: 0;
+}
+
+.over {
+  z-index: 5000;
+}
+
+</style>
+<template>
+  <view class="product">
+    <navigator url="/pages/product?id={{item.id}}" hover-class="navigator-hover">
+      <view class="posr product-size">
+        <image class="posa product-pos product-size over" mode="widthFix" src="/images/image-line@2x.png" />
+        <image class="posa product-pos product-size product-image" mode="aspectFill" src="{{item.imagesrc}}" />
+      </view>
+    </navigator>
+    <view class="product-name">{{item.name}}</view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+export default class product extends wepy.component {}
+
+</script>

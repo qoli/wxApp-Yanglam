@@ -1,0 +1,41 @@
+version: '2'
+
+networks:
+   backend:
+
+services:
+  web:
+    image: docker-node-express-mongoapp
+    container_name: node
+    build: ./web-site
+    command: npm start
+    volumes:
+      - ./web-site:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+       - backend
+    ports:
+      - 3000:3000
+
+  mongodb:
+    image: 'bitnami/mongodb:latest'
+    environment:
+      - MONGODB_USERNAME=WXaJxwWEB2
+      - MONGODB_PASSWORD=WtHSu68q
+      - MONGODB_DATABASE=db_yanglam
+    container_name: mongodb
+    volumes:
+      - ./data:/bitnami
+    networks:
+       - backend
+    ports:
+      - "27017:27017"
+
+  adminmongo:
+    image: "mrvautin/adminmongo"
+    container_name: adminmongo
+    networks:
+       - backend
+    ports:
+      - "1234:1234"
+  

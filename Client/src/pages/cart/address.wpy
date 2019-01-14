@@ -1,0 +1,132 @@
+<style lang="less">
+@import (less) "./src/assets/unit.less";
+
+.total {
+  padding-left: @paddingUnit;
+  padding-right: @paddingUnit;
+  font-size: @fontUnit;
+  margin-bottom: @paddingUnit;
+  align-items: baseline;
+  .text {
+    font-size: @fontUnit*0.9;
+    margin-right: 0.5rem;
+    font-weight: @weightLight;
+  }
+  .number {
+    font-size: @fontUnit*1.2;
+    flex: 1;
+  }
+}
+
+
+.cartLine {
+  background-color: #EBEBEB;
+  height: 1px;
+}
+
+</style>
+<template>
+  <view class="container">
+    <view class="cellRepeat">
+      <addressTitle :title.sync="addressTitle" />
+      <repeat for="{{addressList}}" key="index" index="index" item="item">
+        <addressCell :item="item" @fn.user="addressCellFn" />
+      </repeat>
+    </view>
+    <view class="cellRepeat">
+      <wayTitle :title.sync="wayTitle" />
+      <repeat for="{{wayList}}" key="index" index="index" item="item">
+        <wayCell :item="item" @fn.user="cellFn" />
+      </repeat>
+    </view>
+    <view class="total flex flex-row">
+      <view class="text">
+        总价
+      </view>
+      <view class="number">
+        ¥ {{postData.price}}
+      </view>
+      <view>
+        <button disabled="{{disabled}}" class="bBlack button" @tap="postFn">提交订单</button>
+      </view>
+    </view>
+    <view class="cartLine" />
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import title from '../../components/panel/title'
+import addressCell from '../../components/panel/addressCell'
+import wayCell from '../../components/panel/cell'
+import utils from '../../utils/utils.js'
+
+export default class Index extends wepy.page {
+  config = {
+    navigationBarTitleText: '结算'
+  }
+  components = {
+    addressTitle: title,
+    addressCell: addressCell,
+    wayTitle: title,
+    wayCell: wayCell
+  }
+  data = {
+    addressTitle: '收货地址',
+    wayTitle: '配送',
+    addressList: [],
+    wayList: [],
+    postData: {
+      price: 0,
+      productList: {},
+      address: {}
+    }
+  }
+  methods = {
+    addressCellFn(fn) {
+      let that = this
+      wx.chooseAddress({
+        success: function(res) {
+          that.postData.address = {
+            address: res.provinceName + res.cityName + res.countyName + res.detailInfo,
+            nickname: res.userName,
+            phone: res.telNumber
+          }
+          that.addressList = [that.postData.address]
+          that.$apply()
+        }
+      })
+    },
+    cellFn() {
+      console.log('cellFn')
+    },
+    postFn() {
+      if (Object.getOwnPropertyNames(this.postData.address).length === 0) {
+        utils.msg('尚未选择地址')
+      } else {
+        wx.setStorageSync('pay', this.postData)
+        wepy.navigateTo({ url: '/pages/cart/pay' })
+      }
+    }
+  }
+  events = {}
+  onLoad() {
+    this.addressList = [{
+      address: '点击选择地址'
+    }]
+    this.wayList = [{
+      type: 'ValueView',
+      text: '配送方式',
+      value: '阳琅贸易配送'
+    }]
+
+    var orderData = utils.cache('order')
+    if (!orderData) {
+      utils.msg('订单寻找失败')
+    } else {
+      this.postData.price = orderData.price
+      this.postData.productList = orderData.data
+    }
+  }
+}
+
+</script>

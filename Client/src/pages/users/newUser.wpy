@@ -1,0 +1,244 @@
+<style lang="less">
+
+
+</style>
+<template>
+  <view class="container">
+    <!-- Role -->
+    <view hidden="{{newBySalesman}}" class="Role cellRepeat">
+      <titleRole title="用户权限" />
+      <repeat for="{{listRole}}" key="index" index="index" item="item">
+        <cellRole :item="item" @fn.user="cellRoleFn" />
+      </repeat>
+    </view>
+    <!-- Salesman -->
+    <view hidden="{{hidden.Salesman}}">
+      <view class="Salesman cellRepeat">
+        <titleSalesman title="销售登记" />
+        <repeat for="{{listSalesman}}" key="index" index="index" item="item">
+          <cellSalesman :item="item" @fn.user="cellSalesmanFn" />
+        </repeat>
+      </view>
+    </view>
+    <!-- Shop -->
+    <view hidden="{{hidden.Shop}}">
+      <view class="Shop cellRepeat" hidden="{{hidden.Shop}}">
+        <titleShop title="店铺登记" />
+        <repeat for="{{listShop}}" key="index" index="index" item="item">
+          <cellShop :item="item" @fn.user="cellShopFn" />
+        </repeat>
+      </view>
+    </view>
+  </view>
+  <centerText :text.sync="text" />
+  <block>
+    <bottomBar :item="bottomBar" @fn.user="saveFn" />
+  </block>
+</template>
+<script>
+import wepy from 'wepy'
+import title from '../../components/panel/title'
+import cell from '../../components/panel/cell'
+import centerText from '../../components/panel/centerText'
+import bottomBar from '../../components/panel/bottomBar'
+import utils from '../../utils/utils.js'
+
+export default class Index extends wepy.page {
+  config = {
+    navigationBarTitleText: '新建用户'
+  }
+  components = {
+    bottomBar: bottomBar,
+    centerText: centerText,
+    centerTextShop: centerText,
+    titleRole: title,
+    cellRole: cell,
+    titleSalesman: title,
+    cellSalesman: cell,
+    titleShop: title,
+    cellShop: cell
+  }
+  data = {
+    newBySalesman: false,
+    text: '',
+    hidden: {
+      Salesman: false,
+      Shop: true
+    },
+    bottomBar: {
+      name: '新增',
+      class: 'bBlack',
+      fn: 'saveFn'
+    },
+    listRole: [{
+      fn: 'SwitchRole',
+      type: 'SwitchButton',
+      text: '用户身份',
+      typeData: {
+        valueA: '销售',
+        valueB: '店铺',
+        activateClassA: 'bBlack',
+        activateClassB: ''
+      }
+    }],
+    listSalesman: [],
+    listShop: [],
+    SalesmanCode: '未生成',
+    ShopCode: '未生成',
+    postDataSalesman: {
+      role: 'Salesman',
+      inviteCode: '',
+      code: 'unspecified',
+      name: 'unspecified'
+    },
+    postDataShop: {
+      role: 'Shop',
+      inviteCode: '',
+      code: 'unspecified',
+      name: 'unspecified',
+      address: 'unspecified'
+    }
+  }
+  methods = {
+    cellRoleFn(fnName) {
+      this.switchRole()
+    },
+    async cellSalesmanFn(fnName, inputValue) {
+      switch (fnName) {
+        case 'SalesmanCode':
+          let code = await utils.apiSync('users/codeGenerate/Salesman')
+          this.SalesmanCode = code
+          this.postDataSalesman.code = code
+          this.update()
+          break
+        case 'inputSalesmanName':
+          this.postDataSalesman.name = inputValue
+          break
+        default:
+          if (fnName !== undefined) {
+            console.log('actionFn: ' + fnName)
+          }
+          break
+      }
+    },
+    async cellShopFn(fnName, inputValue) {
+      switch (fnName) {
+        case 'ShopCode':
+          let code = await utils.apiSync('users/codeGenerate/Shop')
+          this.ShopCode = code
+          this.postDataShop.code = code
+          this.update()
+          break
+        case 'inputShopName':
+          this.postDataShop.name = inputValue
+          break
+        case 'inputShopAddress':
+          this.postDataShop.address = inputValue
+          break
+        default:
+          // statements_def
+          break
+      }
+    },
+    async saveFn() {
+      var postData = {}
+      if (this.hidden.Salesman === false) {
+        // Salesman Data
+        console.log('postData, Salesman', this.postDataSalesman)
+        if (this.postDataSalesman.name === 'unspecified' || this.postDataSalesman.code === 'unspecified') {
+          utils.msg('输入信息不完整')
+          return false
+        }
+        postData = this.postDataSalesman
+      }
+      if (this.hidden.Shop === false) {
+        // Salesman Data
+        console.log('postData, Shop', this.postDataShop)
+        if (this.postDataShop.name === 'unspecified' || this.postDataShop.code === 'unspecified') {
+          utils.msg('输入信息不完整')
+          return false
+        }
+        postData = this.postDataShop
+      }
+      // API POST
+      let post = await utils.apiSync('users/newUser', 'POST', postData)
+      this.text = '已建立新的用户(' + post.role + ')，可使用代码(' + post.loginCode + ')和密码(' + post.password + ')登入系统'
+      this.$apply()
+    }
+  }
+  events = {}
+  onLoad(option) {
+    if (option.by === 'Salesman') {
+      this.newBySalesman = true
+      this.switchRole()
+    }
+    this.update()
+    this.postDataSalesman.inviteCode = wepy.$instance.globalData.apiUser.loginCode
+    this.postDataShop.inviteCode = wepy.$instance.globalData.apiUser.loginCode
+  }
+  switchRole() {
+    console.log('switchRole')
+    if (this.hidden.Salesman) {
+      this.hidden.Salesman = false
+      this.hidden.Shop = true
+      return 'Salesman'
+    } else {
+      this.hidden.Salesman = true
+      this.hidden.Shop = false
+      return 'Shop'
+    }
+  }
+  update() {
+    // listSalesman
+    this.listSalesman = [{
+        fn: 'SalesmanCode',
+        type: 'ValueButton',
+        text: '销售代码',
+        value: this.SalesmanCode,
+        typeData: {
+          buttonName: '生成'
+        }
+      },
+      {
+        fn: 'inputSalesmanName',
+        text: '销售名称',
+        value: '输入名称',
+        type: 'Value'
+      },
+      {
+        text: '登入密码',
+        value: '默认密码 888888',
+        type: 'ValueView'
+      }
+    ]
+    // listShop
+    this.listShop = [{
+        fn: 'ShopCode',
+        type: 'ValueButton',
+        text: '店铺代码',
+        value: this.ShopCode,
+        typeData: {
+          buttonName: '生成'
+        }
+      }, {
+        fn: 'inputShopName',
+        text: '店铺名称',
+        value: '输入名称',
+        type: 'Value'
+      }, {
+        fn: 'inputShopAddress',
+        text: '地址',
+        value: '地址',
+        type: 'Value'
+      },
+      {
+        text: '登入密码',
+        value: '默认密码 888888',
+        type: 'ValueView'
+      }
+    ]
+    this.$apply()
+  }
+}
+
+</script>

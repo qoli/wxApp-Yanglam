@@ -1,0 +1,212 @@
+<style lang="less">
+.containerProduct {
+  padding: 0 0.65rem;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.hidden {
+  display: none;
+}
+
+</style>
+<template>
+  <view class="container">
+    <!-- CELL -->
+    <view class="cellRepeat">
+      <title title="商品信息" />
+      <repeat for="{{list}}" key="index" index="index" item="item">
+        <cell :item="item" @fn.user="cellFn" />
+      </repeat>
+    </view>
+  </view>
+  <view class="containerProduct">
+    <repeat for="{{product}}" key="index" index="index" item="item">
+      <product :item="item"></product>
+    </repeat>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import product from '../../components/product'
+import title from '../../components/panel/title'
+import cell from '../../components/panel/cell'
+import utils from '../../utils/utils.js'
+
+export default class Index extends wepy.page {
+  config = {
+    navigationBarTitleText: '添加产品'
+  }
+  components = {
+    product: product,
+    title: title,
+    cell: cell
+  }
+  data = {
+    postData: {
+      name: '等待输入',
+      imagesrc: '/images/image@2x.png',
+      priceItem: 0,
+      priceBatch: 0,
+      priceLowItem: 0,
+      priceLowBatch: 0,
+      sort: 0
+    },
+    product: [],
+    list: []
+  }
+  methods = {
+    async cellFn(fnName, value) {
+      switch (fnName) {
+        case 'uploadImage':
+          let Paths = await wepy.chooseImage({
+            count: 1,
+            sizeType: ['original'],
+            sourceType: ['album', 'camera']
+          })
+          console.log(Paths.tempFilePaths[0])
+          this.postData.imagesrc = Paths.tempFilePaths[0]
+          break
+        case 'inputName':
+          this.postData.name = value
+          break
+        case 'priceItem':
+          this.postData.priceItem = value
+          break
+        case 'priceBatch':
+          this.postData.priceBatch = value
+          break
+        case 'priceLowBatch':
+          this.postData.priceLowBatch = value
+          break
+        case 'priceLowItem':
+          this.postData.priceLowItem = value
+          break
+        case 'sort':
+          this.postData.sort = value
+          break
+        case 'saveFn':
+          this.saveFn()
+          break
+      }
+      this.updatePreview()
+    }
+  }
+  events = {}
+  async saveFn() {
+    var isComplete = false
+
+    if (this.postData.name === '等待输入') {
+      isComplete = false
+      utils.msg('缺少名称')
+      return false
+    }
+    if (this.postData.imagesrc === '/images/image@2x.png') {
+      isComplete = false
+      utils.msg('缺少图片')
+      return false
+    }
+
+    isComplete = true
+    if (isComplete) {
+      console.log(this.postData)
+
+      // 上传实体
+      let res = await wepy.uploadFile({
+        url: wepy.$instance.globalData.APIHOST + 'product/new',
+        header: {
+          'Authorization': 'Basic cjJxcmEzZ2dlbmQ4OldjdzZIQEdjNnc3OA==',
+          'content-type': 'multipart/form-data'
+        },
+        filePath: this.postData.imagesrc,
+        name: 'image',
+        formData: {
+          name: this.postData.name,
+          priceBatch: this.postData.priceBatch,
+          priceItem: this.postData.priceItem,
+          priceLowBatch: this.postData.priceLowBatch,
+          priceLowItem: this.postData.priceLowItem,
+          sort: this.postData.sort
+        }
+      })
+
+      var r = JSON.parse(res.data)
+      // console.log(r)
+      utils.msg(r.message)
+    } else {
+      utils.msg('输入信息不完整')
+    }
+  }
+  updatePreview() {
+    this.product = [{
+      imagesrc: this.postData.imagesrc,
+      name: this.postData.name
+    }]
+    this.$apply()
+  }
+  onLoad() {
+    this.updatePreview()
+    this.list = [{
+      fn: 'uploadImage',
+      text: '商品图片',
+      type: 'ValueView',
+      value: '点击上传'
+    }, {
+      fn: 'inputName',
+      text: '名称',
+      type: 'Value',
+      value: this.postData.name
+    }, {
+      fn: 'priceItem',
+      text: '价格（支，元）',
+      type: 'Value',
+      value: '0.00',
+      typeData: {
+        type: 'number'
+      }
+    }, {
+      fn: 'priceLowItem',
+      text: '最低价（支，元）',
+      type: 'Value',
+      value: '0.00',
+      class: 'hidden',
+      typeData: {
+        type: 'number'
+      }
+    }, {
+      fn: 'priceBatch',
+      text: '价格（箱，元）',
+      type: 'Value',
+      value: '0.00',
+      typeData: {
+        type: 'number'
+      }
+    }, {
+      fn: 'priceLowBatch',
+      text: '最低价（箱，元）',
+      type: 'Value',
+      value: '0.00',
+      typeData: {
+        type: 'number'
+      }
+    }, {
+      fn: 'sort',
+      text: '排序',
+      type: 'Value',
+      value: '数字越小，越靠前',
+      typeData: {
+        type: 'number'
+      }
+    }, {
+      fn: 'saveFn',
+      type: 'LeftButton',
+      text: '保存'
+    }]
+  }
+}
+
+</script>

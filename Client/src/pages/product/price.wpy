@@ -1,0 +1,190 @@
+<style lang="less"></style>
+<template>
+  <view class="container">
+    <!-- CELL -->
+    <view class="cellRepeat">
+      <repeat for="{{list}}" key="index" index="index" item="item">
+        <cell :item="item" @fn.user="cellFn" />
+      </repeat>
+    </view>
+    <!-- cellBase -->
+    <view class="cellRepeat">
+      <titleBase title="基础价格" />
+      <repeat for="{{listBase}}" key="index" index="index" item="item">
+        <cellBase :item="item" @fn.user="cellFn" />
+      </repeat>
+    </view>
+    <!-- cellTager -->
+    <view class="cellRepeat">
+      <titleTager title="针对性价格" />
+      <repeat for="{{listTarger}}" key="index" index="index" item="item">
+        <cellTager :item="item" @fn.user="cellFn" />
+      </repeat>
+    </view>
+  </view>
+  <block>
+    <bottomBar :item.sync="bottomBar" @fn.user="saveFn" />
+  </block>
+</template>
+<script>
+import wepy from 'wepy'
+import title from '../../components/panel/title'
+import cell from '../../components/panel/cell'
+import bottomBar from '../../components/panel/bottomBar'
+import utils from '../../utils/utils.js'
+
+export default class Index extends wepy.page {
+  config = {
+    navigationBarTitleText: '价格设定',
+    enablePullDownRefresh: true
+  }
+  components = {
+    bottomBar: bottomBar,
+    titleBase: title,
+    titleTager: title,
+    cell: cell,
+    cellBase: cell,
+    cellTager: cell
+  }
+  data = {
+    bottomBar: {
+      name: '保存',
+      class: 'bBlack',
+      disabled: true,
+      fn: 'saveFn'
+    },
+    list: [],
+    listBase: [],
+    listTarger: [],
+    productID: '',
+    postData: {
+      priceItem: 0,
+      priceLowItem: 0,
+      priceBatch: 0,
+      priceLowBatch: 0
+    }
+  }
+  methods = {
+    cellFn(fn, v) {
+      switch (fn) {
+        case 'priceItem':
+          this.postData.priceItem = v
+          break
+        case 'priceLowItem':
+          this.postData.priceLowItem = v
+          break
+        case 'priceBatch':
+          this.postData.priceBatch = v
+          break
+        case 'priceLowBatch':
+          this.postData.priceLowBatch = v
+          break
+      }
+      this.bottomBar.disabled = false
+      this.$apply()
+    },
+    async saveFn() {
+      // API POST
+      let r = await utils.apiSync('product/updatePrice/' + this.productID, 'POST', this.postData)
+      utils.msg(r.message)
+    }
+  }
+  events = {}
+  onShow() {
+    wx.startPullDownRefresh()
+  }
+  onPullDownRefresh() {
+    this.update()
+  }
+  onLoad(option) {
+    this.productID = option.id
+    // this.update()
+  }
+  async update() {
+    let p = await utils.apiSync('product/list/' + wepy.$instance.globalData.apiUser.loginCode + '/' + this.productID)
+    this.list = [{
+      type: 'ValueView',
+      text: p.name
+    }]
+
+    this.postData = {
+      priceItem: p.priceItem,
+      priceLowItem: p.priceLowItem,
+      priceBatch: p.priceBatch,
+      priceLowBatch: p.priceLowBatch
+    }
+
+    if (wepy.$instance.globalData.userLv === 0) {
+      this.listBase = [{
+        fn: 'priceItem',
+        type: 'Value',
+        text: '每支价格',
+        value: p.priceItem.toFixed(2),
+        typeData: {
+          type: 'number'
+        }
+      }, {
+        fn: 'priceLowItem',
+        type: 'Value',
+        text: '最低价（支）',
+        value: p.priceLowItem.toFixed(2),
+        typeData: {
+          type: 'number'
+        }
+      }, {
+        fn: 'priceBatch',
+        type: 'Value',
+        text: '每箱价格',
+        value: p.priceBatch.toFixed(2),
+        typeData: {
+          type: 'number'
+        }
+      }, {
+        fn: 'priceLowBatch',
+        type: 'Value',
+        text: '最低价（箱）',
+        value: p.priceLowBatch.toFixed(2),
+        typeData: {
+          type: 'number'
+        }
+      }]
+    } else {
+      this.listBase = [{
+        type: 'ValueView',
+        text: '每支价格',
+        value: p.priceItem.toFixed(2)
+      }, {
+        type: 'ValueView',
+        text: '每箱价格',
+        value: p.priceBatch.toFixed(2)
+      }]
+    }
+
+    this.listTarger = []
+
+    // API GET
+    let t = await utils.apiSync('target/' + this.productID)
+
+    for (var i = t.length - 1; i >= 0; i--) {
+      // API GET
+      let s = await utils.apiSync('users/list/' + t[i].ShopCode)
+      this.listTarger.push({
+        type: 'ValueNext',
+        text: s[0].nickname,
+        value: t[i].priceItem.toFixed(2) + ' / ' + t[i].priceBatch.toFixed(2),
+        next: '/pages/product/priceTager?id=' + this.productID + '&ShopCode=' + t[i].ShopCode + '&priceItem=' + t[i].priceItem + '&priceBatch=' + t[i].priceBatch
+      })
+    }
+
+    this.listTarger.push({
+      type: 'Plus',
+      text: '增加',
+      next: '/pages/product/priceTager?id=' + this.productID
+    })
+
+    wx.stopPullDownRefresh()
+    this.$apply()
+  }
+}
+
+</script>

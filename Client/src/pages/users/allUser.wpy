@@ -1,0 +1,62 @@
+<style lang="less">
+
+
+</style>
+<template>
+  <view class="container">
+    <!-- list -->
+    <view class="Role cellRepeat">
+      <title title="用戶列表" />
+      <repeat for="{{list}}" key="index" index="index" item="item">
+        <cell :item="item" />
+      </repeat>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import title from '../../components/panel/title'
+import cell from '../../components/panel/cell'
+import utils from '../../utils/utils.js'
+
+export default class Index extends wepy.page {
+  config = {
+    navigationBarTitleText: '所有用戶',
+    enablePullDownRefresh: true
+  }
+  components = {
+    title: title,
+    cell: cell
+  }
+  data = {
+    list: []
+  }
+  methods = {}
+  events = {}
+  onShow() {
+
+  }
+  onLoad() {
+    wx.startPullDownRefresh()
+  }
+  onPullDownRefresh() {
+    this.update()
+  }
+  async update() {
+    this.list = []
+    // API GET
+    let users = await utils.apiSync('users/list/all')
+    for (var i = users.length - 1; i >= 0; i--) {
+      this.list.push({
+        text: users[i].nickname,
+        value: users[i].role,
+        type: 'ValueNext',
+        next: '/pages/users/viewUser?loginCode=' + users[i].loginCode
+      })
+    }
+    this.$apply()
+    wx.stopPullDownRefresh()
+  }
+}
+
+</script>

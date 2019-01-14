@@ -1,0 +1,103 @@
+<style lang="less">
+
+
+</style>
+<template>
+  <view class="container">
+    <!-- Role -->
+    <view class="Role cellRepeat">
+      <title title="信息" />
+      <repeat for="{{list}}" key="index" index="index" item="item">
+        <cell :item="item" @fn.user="cellFn" />
+      </repeat>
+    </view>
+    <centerText :text.sync="text" />
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import title from '../../components/panel/title'
+import cell from '../../components/panel/cell'
+import centerText from '../../components/panel/centerText'
+import utils from '../../utils/utils.js'
+
+export default class Index extends wepy.page {
+  config = {
+    navigationBarTitleText: '查看用戶'
+  }
+  components = {
+    title: title,
+    cell: cell,
+    centerText: centerText
+  }
+  data = {
+    list: [],
+    user: {},
+    text: ''
+  }
+  methods = {
+    async cellFn(fnName) {
+      console.log(fnName)
+      switch (fnName) {
+        case 'resetPassword':
+          // API POST
+          let data = {
+            myCode: wepy.$instance.globalData.apiUser.loginCode,
+            otherCode: this.user.loginCode
+          }
+          let res = await utils.apiSync('users/resetPassword', 'POST', data)
+          this.text = res.message
+          this.$apply()
+          break
+        case 'removeUser':
+          let dataRemove = {
+            myCode: wepy.$instance.globalData.apiUser.loginCode,
+            delCode: this.user.loginCode
+          }
+          let resRemove = await utils.apiSync('users/removeUser', 'POST', dataRemove)
+          this.text = resRemove
+          this.$apply()
+          break
+      }
+    }
+  }
+  events = {}
+  async onLoad(option) {
+    console.log(option)
+    // API GET
+    let user = await utils.apiSync('users/list/' + option.loginCode)
+    user = user[0]
+    this.user = user
+    var addressText = ''
+    if (user.address) {
+      addressText = '（' + user.address + '）'
+    }
+    this.list = [{
+        type: 'ValueView',
+        text: user.nickname + addressText,
+        value: user.role
+      },
+      {
+        type: 'ValueView',
+        text: '登入名称',
+        value: user.loginCode
+      },
+      {
+        fn: 'resetPassword',
+        type: 'Button',
+        text: '用户密码',
+        typeData: {
+          buttonName: '重置'
+        }
+      },
+      {
+        fn: 'removeUser',
+        type: 'ValueNext',
+        text: '删除用户'
+      }
+    ]
+    this.$apply()
+  }
+}
+
+</script>

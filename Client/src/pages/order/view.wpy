@@ -1,0 +1,131 @@
+<style lang="less"></style>
+<template>
+  <view class="container">
+    <view class="cellRepeat">
+      <repeat for="{{cellList}}" key="index" index="index" item="item">
+        <cell :item="item" @fn.user="cellFn" />
+      </repeat>
+    </view>
+    <view class="cellRepeat">
+      <title :title.sync="title" />
+      <repeat for="{{productList}}" key="index" index="index" item="item">
+        <productCell :item="item" @fn.user="cellFn" />
+      </repeat>
+    </view>
+    <button class="bBlack" @tap="actionFn" wx:if="{{buttonText != ''}}">{{buttonText}}</button>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import title from '../../components/panel/title'
+import cell from '../../components/panel/cell'
+import cartCell from '../../components/panel/cartCell'
+import utils from '../../utils/utils.js'
+
+export default class Index extends wepy.page {
+  config = {
+    navigationBarTitleText: '查看订单'
+  }
+  components = {
+    title: title,
+    cell: cell,
+    productCell: cartCell
+  }
+  data = {
+    title: '商品',
+    cellList: [],
+    productList: [],
+    buttonText: '支付订单',
+    isPay: false,
+    isDone: false,
+    id: 0
+  }
+  methods = {
+    cellFn(fn, v) {
+
+    },
+    async actionFn() {
+      if (this.isPay) {
+        wepy.navigateTo({ url: '/pages/cart/pay?repay=true&id=' + this.id })
+      }
+    }
+  }
+  events = {}
+  onLoad(option) {
+    this.id = option.id
+    this.update()
+  }
+  async update() {
+    this.cellList = []
+    this.productList = []
+    // API GET
+    let orderData = await utils.apiSync('order/listOne/' + this.id)
+    if (orderData.isSuccess) {
+      // 订单基本信息
+      let t = ''
+      this.cellList.push({
+        type: 'ValueView',
+        text: '送达地址',
+        value: orderData.data.address
+      })
+      this.cellList.push({
+        type: 'ValueView',
+        text: '收件人',
+        value: orderData.data.nickname
+      })
+      this.cellList.push({
+        type: 'ValueView',
+        text: '电话',
+        value: orderData.data.phone
+      })
+      this.cellList.push({
+        type: 'ValueView',
+        text: '订单日期',
+        value: orderData.data.created_at.substring(0, 10)
+      })
+      if (orderData.data.isDone === true) {
+        t = '已完成'
+        this.buttonText = ''
+      }
+      if (orderData.data.isDeliver === false) {
+        t = '未发货'
+        this.buttonText = ''
+      }
+      if (orderData.data.isDeliver === true) {
+        t = '已发货'
+        this.buttonText = '确认收货'
+        this.isDone = true
+      }
+      if (orderData.data.isPay === false) {
+        t = '未付款'
+        this.buttonText = '支付订单'
+        this.isPay = true
+      }
+      this.cellList.push({
+        type: 'ValueView',
+        text: '订单状态',
+        value: t
+      })
+      // 订单商品信息
+      for (var i = orderData.data.productList.length - 1; i >= 0; i--) {
+        let o = orderData.data.productList[i]
+        var r = '支'
+        if (!o.isRetail) {
+          r = '箱'
+        }
+        // API GET
+        let name = await utils.apiSync('product/name/' + o.productId)
+        this.productList.push({
+          text: name,
+          value: o.price,
+          number: o.count,
+          type: r,
+          noNext: true
+        })
+      }
+      this.$apply()
+    }
+  }
+}
+
+</script>

@@ -1,0 +1,192 @@
+<style lang="less"></style>
+<template>
+  <view class="container">
+    <!-- CELL -->
+    <view class="cellRepeat">
+      <repeat for="{{list}}" key="index" index="index" item="item">
+        <cell :item="item" @fn.user="cellFn" />
+      </repeat>
+    </view>
+    <centerText :text.sync="text" hidden="{{isView}}" />
+    <view class="cellRepeat">
+      <title title="设定价格" />
+      <repeat for="{{listPrice}}" key="index" index="index" item="item">
+        <cellPrice :item="item" @fn.user="cellFn" />
+      </repeat>
+    </view>
+  </view>
+  <block>
+    <bottomBar :item.sync="bottomBar" @fn.user="saveFn" />
+  </block>
+</template>
+<script>
+import wepy from 'wepy'
+import title from '../../components/panel/title'
+import cell from '../../components/panel/cell'
+import centerText from '../../components/panel/centerText'
+import bottomBar from '../../components/panel/bottomBar'
+import utils from '../../utils/utils.js'
+
+export default class Index extends wepy.page {
+  config = {
+    navigationBarTitleText: '针对性价格'
+  }
+  components = {
+    bottomBar: bottomBar,
+    title: title,
+    cell: cell,
+    cellPrice: cell,
+    centerText: centerText
+  }
+  data = {
+    isView: false,
+    bottomBar: {
+      name: '保存',
+      class: 'bBlack',
+      disabled: true,
+      fn: 'saveFn'
+    },
+    text: '请输入店铺代码',
+    list: [],
+    listPrice: [],
+    postData: {
+      ProductID: '',
+      SalesmanCode: '',
+      ShopCode: '',
+      priceItem: 0,
+      priceBatch: 0
+    },
+    low: {
+      priceItem: '',
+      priceBatch: ''
+    }
+  }
+  methods = {
+    async cellFn(fn, v) {
+      switch (fn) {
+        case 'lookforShop':
+          // API GET
+          let sh = await utils.apiSync('users/shopByCode/' + v)
+          if (sh.isMatch) {
+            this.postData.ShopCode = sh.shopCode
+            this.bottomBar.disabled = false
+          }
+          this.text = sh.message
+          break
+        case 'priceItem':
+          this.postData.priceItem = v
+          this.bottomBar.disabled = false
+          break
+        case 'priceBatch':
+          this.postData.priceBatch = v
+          this.bottomBar.disabled = false
+          break
+      }
+
+      this.$apply()
+    },
+    async saveFn() {
+      if (this.postData.priceItem < this.low.priceItem) {
+        utils.msg('每支价格过低（最低价：' + this.low.priceItem + '）')
+        return false
+      }
+
+      if (this.postData.priceBatch < this.low.priceBatch) {
+        utils.msg('每箱价格过低（最低价：' + this.low.priceBatch + '）')
+        return false
+      }
+
+      var r
+
+      if (this.isView) {
+        r = await utils.apiSync('target/update/' + this.postData.ProductID + '/' + this.postData.ShopCode, 'POST', this.postData)
+      } else {
+        r = await utils.apiSync('target/new', 'POST', this.postData)
+      }
+
+      utils.msg(r.message)
+    }
+  }
+  events = {}
+  onLoad(option) {
+    console.log(option)
+
+    if (option.hasOwnProperty('ShopCode')) {
+      this.isView = true
+      this.postData.ShopCode = option.ShopCode
+      this.postData.priceItem = option.priceItem
+      this.postData.priceBatch = option.priceBatch
+      this.bottomBar.name = '更新'
+    }
+
+    this.postData.ProductID = option.id
+    this.postData.SalesmanCode = wepy.$instance.globalData.apiUser.loginCode
+    this.update(option)
+  }
+  async update(option) {
+    let p = await utils.apiSync('product/list/' + wepy.$instance.globalData.apiUser.loginCode + '/' + option.id)
+
+    this.low.priceItem = p.priceLowItem
+    this.low.priceBatch = p.priceLowBatch
+
+    if (this.isView) {
+      // 編輯模式
+      this.list = [{
+        type: 'ValueView',
+        text: '针对店铺',
+        value: this.postData.ShopCode
+      }]
+
+      this.listPrice = [{
+        fn: 'priceItem',
+        type: 'Value',
+        text: '每支价格',
+        typeData: {
+          type: 'number'
+        },
+        value: this.postData.priceItem
+      }, {
+        fn: 'priceBatch',
+        type: 'Value',
+        text: '每箱价格',
+        typeData: {
+          type: 'number'
+        },
+        value: this.postData.priceBatch
+      }]
+    } else {
+      // 新建模式
+      this.list = [{
+        fn: 'lookforShop',
+        type: 'Value',
+        text: '针对店铺',
+        value: '店铺代码',
+        typeData: {
+          type: 'number'
+        }
+      }]
+
+      this.listPrice = [{
+        fn: 'priceItem',
+        type: 'Value',
+        text: '每支价格',
+        typeData: {
+          type: 'number'
+        },
+        value: '不可低于 ' + p.priceLowItem.toFixed(2)
+      }, {
+        fn: 'priceBatch',
+        type: 'Value',
+        text: '每箱价格',
+        typeData: {
+          type: 'number'
+        },
+        value: '不可低于 ' + p.priceLowBatch.toFixed(2)
+      }]
+    }
+
+    this.$apply()
+  }
+}
+
+</script>

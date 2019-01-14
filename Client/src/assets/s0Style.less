@@ -1,0 +1,50 @@
+@import "./src/assets/unit.less";
+page {
+  background-color: #221D1C;
+}
+
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(74, 74, 74, 1);
+  flex: 1;
+  height: 80vh;
+}
+
+.baseController {
+  margin: 0 auto;
+  width: 260px;
+  height: 2.5rem;
+  line-height: 2.5rem;
+  border-radius: 0.25rem;
+  margin-bottom: 0.5rem;
+  padding: 0 12px;
+}
+
+
+.lineText {
+  margin-top: 0.5rem;
+  width: 260px;
+  display: flex;
+  font-size: @fontUnit;
+  color: #9B9B9B;
+  justify-content: space-between;
+  .left {
+    flex: 1;
+    text-align: left;
+  }
+  .right {
+    text-align: right;
+  }
+}
+
+.bottomArea {
+  bottom: 40px;
+  width: 100%;
+  .text {
+    font-size: @fontUnit;
+    color: #9B9B9B;
+    text-align: center;
+  }
+}

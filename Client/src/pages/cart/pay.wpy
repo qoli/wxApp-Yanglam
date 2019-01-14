@@ -1,0 +1,115 @@
+<style lang="less">
+@import (less) "./src/assets/unit.less";
+
+.total {
+  padding-left: @paddingUnit;
+  padding-right: @paddingUnit;
+  font-size: @fontUnit;
+  margin-top: @paddingUnit;
+  margin-bottom: @paddingUnit;
+  align-items: baseline;
+  .text {
+    font-size: @fontUnit*0.9;
+    margin-right: 0.5rem;
+    font-weight: @weightLight;
+  }
+  .number {
+    font-size: @fontUnit*1.2;
+    flex: 1;
+  }
+}
+
+
+.cartLine {
+  background-color: #EBEBEB;
+  height: 1px;
+}
+
+</style>
+<template>
+  <view class="container">
+    <view class="cartLine" />
+    <view class="total flex flex-row">
+      <view class="text">
+        总价
+      </view>
+      <view class="number">
+        ¥ {{postData.price}}
+      </view>
+    </view>
+    <view class="cartLine" />
+    <view class="cellRepeat mt2">
+      <payTitle :title.sync="payTitle" />
+      <repeat for="{{payList}}" key="index" index="index" item="item">
+        <payCell :item="item" @fn.user="cellFn" />
+      </repeat>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import title from '../../components/panel/title'
+import cell from '../../components/panel/cell'
+import utils from '../../utils/utils.js'
+
+export default class Index extends wepy.page {
+  config = {
+    navigationBarTitleText: '支付订单'
+  }
+  components = {
+    payTitle: title,
+    payCell: cell
+  }
+  data = {
+    payTitle: '支付方式',
+    payList: [],
+    postData: {
+      price: 0,
+      productList: {},
+      address: {}
+    }
+  }
+  methods = {
+    cellFn(fn) {
+      console.log('cellFn')
+    },
+    postFn() {
+      console.log('postFn', this.postData)
+    }
+  }
+  events = {}
+  async onLoad(option) {
+    var p = '?id=null'
+    if (option.repay === 'true') {
+      let repay = await utils.apiSync('order/RePay/' + option.id)
+      this.postData.price = repay.totalPrice
+      p = '?id=' + option.id
+    } else {
+      var pay = utils.cache('pay')
+      if (!pay) {
+        utils.msg('订单寻找失败')
+      } else {
+        this.postData.price = pay.price
+      }
+    }
+    this.payList = [{
+      type: 'TagNext',
+      text: '微信支付',
+      value: '推荐',
+      next: '/pages/cart/wechatpay' + p
+    }, {
+      type: 'TagNext',
+      text: '支付宝',
+      value: '',
+      next: '/pages/webview/view?url='
+    }, {
+      type: 'TagNext',
+      text: '银行卡转账',
+      value: '',
+      next: '/pages/webview/view?url='
+    }]
+    this.$apply()
+  }
+}
+
+</script>

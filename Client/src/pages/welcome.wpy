@@ -1,0 +1,106 @@
+<style lang="less">
+@import "./src/assets/s0Style.less";
+
+button {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: @weightSemibold;
+  color: rgba(74, 74, 74, 1);
+  background-color: #fff;
+  margin-top: 40px !important;
+  margin-bottom: 16px !important;
+}
+
+.text {
+  font-size: @fontUnit;
+  color: #9B9B9B;
+  text-align: center;
+  margin-bottom: 16px !important;
+}
+
+.Title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 1);
+  line-height: 2.06rem;
+  letter-spacing: 1px;
+}
+
+</style>
+<template>
+  <view class="container">
+    <!-- <image class="baseController" mode="aspectFit" src="../images/logo@2x.png"></image> -->
+    <view class="Title">阳琅贸易</view>
+    <button class="baseController LoginButton" open-type="getUserInfo" lang="zh_CN" @getuserinfo="autoLogin">免密登入</button>
+    <view @tap="onLogin" class="text">账号密码登入</view>
+    <view @tap="onIndex" class="text">打开首页</view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import utils from '../utils/utils.js'
+
+export default class Index extends wepy.page {
+  config = {
+    navigationBarTitleText: '阳琅贸易',
+    navigationBarTextStyle: 'white',
+    navigationBarBackgroundColor: '#221D1C',
+    backgroundColor: '#221D1C',
+    disableScroll: true
+  }
+  components = {}
+  data = {}
+  methods = {
+    onLogin() {
+      wepy.redirectTo({ url: '/pages/s1Login' })
+    },
+    onIndex() {
+      utils.goIndex()
+    }
+  }
+
+  onLoad() {
+    // wepy.navigateTo({ url: '/pages/webview/view?url=https://www.5mlstudio.com/15161112284329.html' })
+    // 已登入
+    if (this.$parent.globalData.userInfo) {
+      wepy.switchTab({ url: '/pages/index' })
+    }
+  }
+  async autoLogin() {
+    wx.clearStorageSync()
+    console.log('[免密登入] 开始')
+    let res = await wepy.login()
+    this.$parent.getUserInfo()
+    let resCodetosession = await utils.apiSync('login/codetosession/' + res.code)
+    console.log(resCodetosession)
+    // API GET
+    let apiUser = await utils.apiSync('users/openidLogin/' + resCodetosession.openid)
+    if (apiUser.isSuccess) {
+      // 設定 cache
+      var resUC = await wepy.getUserInfo()
+      console.log('wx.getUserInfo 设定缓存')
+      var uc = JSON.parse(resUC.rawData)
+      wepy.setStorageSync('apiUser', apiUser.data)
+      wepy.setStorageSync('role', apiUser.data.role)
+      wepy.setStorageSync('userInfo', uc)
+
+      // 变量同步
+      this.$parent.syncCache()
+
+      // go
+      console.log('[免密登入] 完成')
+      utils.goIndex()
+      // wx.switchTab({ url: '/pages/index' })
+    } else {
+      utils.msg(apiUser.message)
+      let self = this
+      wx.clearStorage({
+        success: function(res) {
+          self.$parent.globalData.userInfo = null
+        }
+      })
+    }
+  }
+}
+
+</script>

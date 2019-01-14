@@ -1,0 +1,99 @@
+<style lang="less">
+.container {
+  padding: 0 0.65rem;
+  height: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+</style>
+<template>
+  <navbar :name.sync="name" :description.sync="description" :avatar.sync="avatar"></navbar>
+  <view class="container">
+    <repeat for="{{list}}" key="index" index="index" item="item">
+      <product :item="item"></product>
+    </repeat>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import product from '../components/product'
+import navbar from '../components/navbar'
+import utils from '../utils/utils.js'
+
+export default class Index extends wepy.page {
+  config = {
+    navigationBarTitleText: '阳琅贸易',
+    enablePullDownRefresh: true
+  }
+
+  components = {
+    product: product,
+    navbar: navbar
+  }
+
+  data = {
+    name: 'name',
+    description: '...',
+    avatar: '',
+    list: []
+  }
+  onPullDownRefresh() {
+    this.update()
+  }
+  onLoad() {
+    // wepy.navigateTo({ url: '/pages/shop/view?shopCode=SH:728402' })
+    // wx.switchTab({ url: '/pages/user' })
+
+    // 更新內容
+    // wx.startPullDownRefresh()
+    this.update()
+
+    // 導航欄
+    this.navbar()
+  }
+  navbar() {
+    if (!this.$parent.globalData.role) {
+      // 未登入
+      this.description = '点击登录'
+      this.name = '访客'
+      this.avatar = '/images/userDefault@2x.png'
+    } else {
+      // 已登入
+      if (!utils.isEmpty(this.$parent.globalData.userInfo)) {
+        // 微信登入
+        this.name = this.$parent.globalData.userInfo.nickName
+        this.avatar = this.$parent.globalData.userInfo.avatarUrl
+      } else {
+        // 賬號密碼登入
+        this.name = this.$parent.globalData.apiUser.nickname
+        this.avatar = '/images/userDefault@2x.png'
+      }
+
+      this.description = this.$parent.globalData.role
+    }
+  }
+  async update() {
+    var productSearchCode = 'Guset'
+    if (this.$parent.globalData.role) {
+      productSearchCode = wepy.$instance.globalData.apiUser.loginCode
+    }
+    this.list = []
+    // API GET
+    let product = await utils.apiSync('product/list/' + productSearchCode + '/all')
+    for (var i = product.length - 1; i >= 0; i--) {
+      this.list.push({
+        imagesrc: wepy.$instance.globalData.APIHOST + product[i].imageSrc,
+        name: product[i].name,
+        id: product[i]._id
+      })
+    }
+    wx.stopPullDownRefresh()
+    this.$apply()
+  }
+}
+
+</script>

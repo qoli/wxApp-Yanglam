@@ -1,0 +1,131 @@
+<style lang="less">
+@import (less) "./src/assets/unit.less";
+
+.cellRepeat {
+  .addressCell {
+    height: 3.4rem;
+    line-height: 1.25rem;
+    background: rgba(255, 255, 255, 1);
+    display: flex;
+    padding-left: @paddingUnit;
+    padding-right: @paddingUnit;
+    align-items: center;
+    font-size: @fontUnit;
+    .text {
+      flex: 1;
+      font-weight: @weightSemibold;
+      color: rgba(74, 74, 74, 1);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .onTop {
+    background-color: #EBEBEB;
+    height: 1px;
+  }
+
+  .onBottom+.onTop {
+    margin-left: @fontUnit;
+    background-color: #EBEBEB;
+    height: 1px;
+  }
+
+  .icon {
+    height: 3rem;
+    line-height: 3rem;
+    margin-left: 8px;
+  }
+
+  .icon image {
+    height: 8px;
+    width: 8px;
+    background-position: center;
+    color: #4A4A4A;
+  }
+}
+
+.cellRepeat>.line:last-child {
+  background-color: #EBEBEB;
+  height: 1px;
+  margin-bottom: @paddingUnit;
+}
+
+.viewClickable {
+  min-width: 88px;
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+}
+
+.leftIcon {
+  margin-right: @paddingUnit;
+  margin-top: 4px;
+  image {
+    height: 16px;
+    width: 16px;
+    background-position: center;
+  }
+}
+
+.lineTwo {
+  display: flex;
+  flex-direction: row;
+  .textBlack {
+    margin-right: 0.25rem;
+  }
+  .textGray {
+    color: #9B9B9B;
+    font-weight: @weightLight;
+  }
+}
+
+</style>
+<template>
+  <view class="line onTop" />
+  <view class="addressCell" @tap="tap">
+    <view class="leftIcon">
+      <image src="/assets/light/map-pin.svg" mode="aspectFit" />
+    </view>
+    <view class="text">
+      <view class="lineOne ellipsis">{{item.address}}</view>
+      <view class="lineTwo">
+        <view class="textBlack">{{item.nickname}}</view>
+        <view class="textGray">{{item.phone}}</view>
+      </view>
+    </view>
+    <view hover hover-class="viewHover">
+      <view class="icon">
+        <image src="/assets/light/chevron-right.svg" mode="aspectFit" />
+      </view>
+    </view>
+  </view>
+  <view class="line onBottom " />
+</template>
+<script>
+import wepy from 'wepy'
+
+export default class cellTitle extends wepy.component {
+  props = {
+    item: {}
+  }
+  data = {
+    item: {
+      fn: ''
+    }
+  }
+  methods = {
+    focus(value, height) {},
+    tap(e) {
+      var inputValue = e.detail.value || ''
+      this.$emit('fn', this.item.fn, inputValue)
+    }
+  }
+
+  onLoad() {
+
+  }
+}
+
+</script>

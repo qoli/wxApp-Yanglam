@@ -1,0 +1,145 @@
+<style lang="less">
+@import (less) "./src/assets/unit.less";
+
+.cellRepeat {
+  .orderCell {
+    height: 3.4rem;
+    line-height: 1.25rem;
+    background: rgba(255, 255, 255, 1);
+    display: flex;
+    padding-left: @paddingUnit;
+    padding-right: @paddingUnit;
+    align-items: center;
+    font-size: @fontUnit;
+    .text {
+      flex: 1;
+      font-weight: @weightSemibold;
+      color: rgba(74, 74, 74, 1);
+    }
+  }
+
+  .onTop {
+    background-color: #EBEBEB;
+    height: 1px;
+  }
+
+  .onBottom+.onTop {
+    margin-left: @fontUnit;
+    background-color: #EBEBEB;
+    height: 1px;
+  }
+
+  .icon {
+    height: 3rem;
+    line-height: 3rem;
+    margin-left: 8px;
+  }
+
+  .icon image {
+    height: 8px;
+    width: 8px;
+    background-position: center;
+    color: #4A4A4A;
+  }
+}
+
+.cellRepeat>.line:last-child {
+  background-color: #EBEBEB;
+  height: 1px;
+  margin-bottom: @paddingUnit;
+}
+
+.viewClickable {
+  min-width: 88px;
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+}
+
+.leftIcon {
+  margin-right: @paddingUnit;
+  margin-top: 4px;
+  image {
+    height: 16px;
+    width: 16px;
+    background-position: center;
+  }
+}
+
+.lineOne {
+  flex: 1;
+}
+
+.lineTwo {
+  display: flex;
+  flex-direction: row;
+  .textBlack {
+    margin-right: 0.25rem;
+  }
+  .textGray {
+    font-weight: @weightLight;
+  }
+  .colorOrange {
+    color: rgba(245, 166, 35, 1);
+  }
+  .colorGreen {
+    color: rgba(126, 211, 33, 1);
+  }
+  .colorGray {
+    color: rgba(204, 204, 204, 1);
+  }
+}
+
+</style>
+<template>
+  <view class="line onTop" />
+  <view class="orderCell" @tap="tap">
+    <view class="text ellipsis">
+      <view class="lineOne ellipsis">{{item.id}}</view>
+      <view class="lineTwo">
+        <view wx:if="{{item.status == '未付款'}}" class="textBlack colorOrange">{{item.status}}</view>
+        <view wx:if="{{item.status == '未发货'}}" class="textBlack colorGreen">{{item.status}}</view>
+        <view wx:if="{{item.status == '待收货'}}" class="textBlack colorGray">{{item.status}}</view>
+        <view wx:if="{{item.status == '已完成'}}" class="textBlack colorGray">{{item.status}}</view>
+        <view class="textGray">{{item.date}}</view>
+      </view>
+    </view>
+    <view hover hover-class="viewHover">
+      <view class="icon">
+        <image src="/assets/light/chevron-right.svg" mode="aspectFit" />
+      </view>
+    </view>
+  </view>
+  <view class="line onBottom " />
+</template>
+<script>
+import wepy from 'wepy'
+
+export default class cellTitle extends wepy.component {
+  props = {
+    item: {}
+  }
+  data = {
+    item: {
+      fn: ''
+    }
+  }
+  methods = {
+    focus(value, height) {},
+    tap(e) {
+      var inputValue = e.detail.value || ''
+      if (typeof this.item.next !== 'undefined') {
+        wepy.navigateTo({
+          url: this.item.next
+        })
+      }
+      this.$emit('fn', this.item.fn, inputValue)
+    }
+  }
+
+  onLoad() {
+
+  }
+}
+
+</script>

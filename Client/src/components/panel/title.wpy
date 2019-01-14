@@ -1,0 +1,30 @@
+<style lang="less">
+@import "./src/assets/unit.less";
+
+.cell-title {
+  height: 0.7rem;
+  font-size: 0.5rem;
+  font-weight: @weightSemibold;
+  color: rgba(74, 74, 74, 1);
+  line-height: 0.7rem;
+  text-align: left;
+  padding: 0.25rem @fontUnit;
+  margin-top: @paddingUnit/2;
+}
+
+</style>
+<template>
+  <view class="cell-title">
+    {{title}}
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+
+export default class cellTitle extends wepy.component {
+  props = {
+    title: String
+  }
+}
+
+</script>

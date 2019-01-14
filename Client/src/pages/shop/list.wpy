@@ -1,0 +1,52 @@
+<style lang="less"></style>
+<template>
+  <view class="container">
+    <view class="cellRepeat">
+      <repeat for="{{cellList}}" key="index" index="index" item="item">
+        <cell :item="item" @fn.user="cellFn" />
+      </repeat>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import cell from '../../components/panel/cell'
+import utils from '../../utils/utils.js'
+
+export default class Index extends wepy.page {
+  config = {
+    navigationBarTitleText: '签约店铺'
+  }
+  components = {
+    cell: cell
+  }
+  data = {
+    cellList: []
+  }
+  methods = {
+    async cellFn(fn, v) {
+
+    }
+  }
+  events = {}
+  onLoad(option) {
+    this.update()
+  }
+  async update() {
+    // API GET
+    this.cellList = []
+    let list = await utils.apiSync('users/byInviteCode/' + wepy.$instance.globalData.apiUser.loginCode)
+    for (var i = list.length - 1; i >= 0; i--) {
+      this.cellList.push({
+        fn: 'cellFn',
+        type: 'ValueNext',
+        text: list[i].nickname,
+        value: list[i].loginCode,
+        next: '/pages/shop/view?shopCode=' + list[i].loginCode
+      })
+    }
+    this.$apply()
+  }
+}
+
+</script>

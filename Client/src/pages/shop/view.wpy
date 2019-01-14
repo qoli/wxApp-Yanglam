@@ -1,0 +1,86 @@
+<style lang="less"></style>
+<template>
+  <view class="container">
+    <view class="cellRepeat">
+      <repeat for="{{cellList}}" key="index" index="index" item="item">
+        <cell :item="item" @fn.user="cellFn" />
+      </repeat>
+    </view>
+    <centerText :text.sync="text" />
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import cell from '../../components/panel/cell'
+import centerText from '../../components/panel/centerText'
+import utils from '../../utils/utils.js'
+
+export default class Index extends wepy.page {
+  config = {
+    navigationBarTitleText: '店铺资料'
+  }
+  components = {
+    cell: cell,
+    centerText: centerText
+  }
+  data = {
+    cellList: [],
+    text: '',
+    shopCode: ''
+  }
+  methods = {
+    async cellFn(fn, v) {
+      switch (fn) {
+        case 'resetPassword':
+          // API POST
+          let data = {
+            myCode: wepy.$instance.globalData.apiUser.loginCode,
+            otherCode: this.shopCode
+          }
+          let res = await utils.apiSync('users/resetPassword', 'POST', data)
+          console.log(res)
+          this.text = res.message
+          this.$apply()
+          break
+        default:
+          wx.setClipboardData({
+            data: fn,
+            success: function(res) {
+              utils.msg(fn + ' 已复制到粘贴板')
+            }
+          })
+          break
+      }
+    }
+  }
+  events = {}
+  onLoad(option) {
+    this.shopCode = option.shopCode
+    this.update()
+  }
+  async update() {
+    // API GET
+    let s = await utils.apiSync('users/list/' + this.shopCode)
+    this.cellList = [{
+      fn: s[0].loginCode,
+      type: 'ValueView',
+      text: '店铺代号',
+      value: s[0].loginCode
+    }, {
+      fn: s[0].nickname,
+      type: 'ValueView',
+      text: '店铺名称',
+      value: s[0].nickname
+    }, {
+      fn: 'resetPassword',
+      type: 'ValueButton',
+      text: '登陆密码',
+      typeData: {
+        buttonName: '重置'
+      }
+    }]
+    this.$apply()
+  }
+}
+
+</script>

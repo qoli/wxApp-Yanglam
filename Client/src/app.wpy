@@ -1,0 +1,207 @@
+<style lang='less'>
+@import (less) './src/assets/unit.less';
+@import (less) './src/assets/style.less';
+@import (less) './src/assets/flex.less';
+
+// 组件
+button {
+  border: none;
+  background: rgba(188, 188, 201, 1);
+  border-radius: 2px;
+  color: #fff;
+  padding: 0.3rem 1rem;
+  font-size: @fontUnit * 0.9;
+  line-height: @fontUnit;
+}
+
+button[disabled] {
+  background: rgba(188, 188, 201, 1) !important;
+  color: rgba(255, 255, 255, 0.3) !important;
+}
+
+button::after {
+  border: 0;
+}
+
+page {
+  background-color: #FAFAFA;
+}
+
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.posa {
+  position: absolute;
+}
+
+.posr {
+  position: relative;
+}
+
+.pl {
+  padding-left: @paddingUnit;
+}
+
+.plr {
+  padding: 0 @paddingUnit;
+}
+
+// iPhone X 
+.isiPhoneX {
+  padding-bottom: 34px;
+}
+
+</style>
+<script>
+import wepy from 'wepy'
+import 'wepy-async-function'
+import utils from './utils/utils.js'
+
+export default class extends wepy.app {
+  config = {
+    pages: [
+      'pages/product/new',
+      'pages/index',
+      'pages/user',
+      'pages/s1Login',
+      'pages/s2Link',
+      'pages/welcome',
+      'pages/cart',
+      'pages/users/newUser',
+      'pages/users/viewUser',
+      'pages/users/allUser',
+      'pages/users/resetPassword',
+      'pages/product',
+      // 'pages/product/new',
+      'pages/product/price',
+      'pages/product/priceTager',
+      'pages/shop/list',
+      'pages/shop/view',
+      'pages/cart/address',
+      'pages/cart/pay',
+      'pages/cart/wechatpay',
+      'pages/cart/payDone',
+      'pages/order/list',
+      'pages/order/view',
+      'pages/webview/view',
+      'pages/errorPage'
+    ],
+    tabBar: {
+      color: '#C3C3C3',
+      selectedColor: '#4A4A4A',
+      list: [{
+        pagePath: 'pages/index',
+        iconPath: 'images/Home/Normal.png',
+        selectedIconPath: 'images/Home/Selected.png',
+        text: '选购'
+      }, {
+        pagePath: 'pages/cart',
+        iconPath: 'images/Cart/Normal.png',
+        selectedIconPath: 'images/Cart/Selected.png',
+        text: '购物车'
+      }, {
+        pagePath: 'pages/user',
+        iconPath: 'images/User/Normal.png',
+        selectedIconPath: 'images/User/Selected.png',
+        text: '我的'
+      }]
+    },
+    window: {
+      backgroundTextStyle: 'dark',
+      navigationBarBackgroundColor: '#FAFAFA',
+      navigationBarTitleText: '阳琅贸易',
+      navigationBarTextStyle: 'black',
+      backgroundColor: '#FAFAFA'
+    }
+
+  }
+
+  globalData = {
+    userInfo: null,
+    APIHOST: 'https://api.yanglam.cn/',
+    apiUser: {},
+    iPhoneCompatible: 'notiPhoneX',
+    role: null
+  }
+
+  constructor() {
+    super()
+    this.use('promisify')
+  }
+
+  onLaunch() {
+    this.checkIsIPhoneX()
+    this.syncCache()
+  }
+
+  async syncCache() {
+    console.log('全局变量与缓存同步')
+    var rc = utils.cache('role')
+    this.globalData.role = rc
+
+    var ac = utils.cache('apiUser')
+    this.globalData.apiUser = ac
+
+    var uc = utils.cache('userInfo')
+
+    if (uc) {
+      console.log('找到用户缓存')
+      this.globalData.userInfo = uc
+    } else {
+      console.log('找不到缓存')
+    }
+
+    let userLv = await this.userLevel()
+    console.log('检查用户等级:', userLv)
+  }
+
+  async userLevel() {
+    switch (wepy.$instance.globalData.role) {
+      case 'Administrator':
+      case 'Developer':
+        this.globalData.userLv = 0
+        return 0
+      case 'Salesman':
+        this.globalData.userLv = 1
+        return 1
+      case 'Shop':
+        this.globalData.userLv = 2
+        return 2
+      default:
+        this.globalData.userLv = 9
+        return 9
+    }
+  }
+
+  async getUserInfo() {
+    var res = await wepy.getUserInfo()
+    console.log('wx.getUserInfo 设定缓存')
+    var uc = JSON.parse(res.rawData)
+    this.globalData.userInfo = uc
+    wx.setStorage({
+      key: 'userInfo',
+      data: uc
+    })
+    this.syncCache()
+  }
+
+  checkIsIPhoneX() {
+    const self = this
+    wx.getSystemInfo({
+      success: function(res) {
+        // 根据 model 进行判断
+        if (res.model.search('iPhone X') !== -1) {
+          self.globalData.iPhoneCompatible = 'isiPhoneX'
+          console.log('iPhone X 兼容性檢查: ' + self.globalData.iPhoneCompatible)
+        }
+      }
+    })
+  }
+}
+
+</script>

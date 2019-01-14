@@ -1,0 +1,118 @@
+<style lang="less">
+@import (less) "./src/assets/unit.less";
+.ButtonList {
+  padding: @paddingUnit;
+  button {
+    margin-right: 10px;
+  }
+  .none {
+    flex: 1;
+  }
+}
+</style>
+<template>
+  <view class="ButtonList flex flex-row">
+    <button class="bBlack">全部订单</button>
+    <button class="bGray">店铺筛选</button>
+    <view class="none"></view>
+  </view>
+  <view class="container">
+    <view class="cellRepeat">
+      <repeat for="{{orderCellList}}" key="index" index="index" item="item">
+        <orderCell :item="item" @fn.user="cellFn" />
+      </repeat>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import orderCell from '../../components/panel/orderCell'
+import utils from '../../utils/utils.js'
+
+export default class Index extends wepy.page {
+  config = {
+    navigationBarTitleText: '全部订单',
+    enablePullDownRefresh: true
+  }
+  components = {
+    orderCell: orderCell
+  }
+  data = {
+    orderCellList: []
+  }
+  methods = {
+    async cellFn(fn, v) {
+
+    }
+  }
+  events = {}
+  onPullDownRefresh() {
+    this.orderUpdate()
+  }
+  onLoad() {
+    this.orderUpdate()
+  }
+  async orderUpdate() {
+    this.orderCellList = []
+    let apiData
+    let by = '订单：'
+    var isAdmin = false
+
+    switch (wepy.$instance.globalData.userLv) {
+      case 0:
+      case 1:
+        apiData = await utils.apiSync('order/list/all')
+        isAdmin = true
+        break
+      case 2:
+        apiData = await utils.apiSync('order/list/' + wepy.$instance.globalData.apiUser.loginCode)
+        break
+    }
+
+    if (!apiData.isSuccess) {
+      utils.msg(apiData.message)
+    } else {
+      var list = apiData.data
+      for (var i = list.length - 1; i >= 0; i--) {
+        let t = ''
+        let d = ''
+        if (list[i].isDone === true) {
+          t = '已完成'
+        }
+        if (list[i].isDeliver === false) {
+          t = '未发货'
+        }
+        if (list[i].isPay === false) {
+          t = '未付款'
+        }
+
+        d = list[i].created_at.substring(0, 10)
+
+        if (isAdmin) {
+          by = list[i].loginCode + ' '
+        }
+        var productList = list[i].productList
+        let nameList = ''
+        var countName = '支'
+        for (var j = productList.length - 1; j >= 0; j--) {
+          let thisProduct = productList[j]
+          let name = await utils.apiSync('product/name/' + thisProduct.productId)
+          if (!thisProduct.isRetail) {
+            countName = '箱'
+          }
+          nameList = nameList + name + ' ' + thisProduct.count + '（' + countName + '） '
+        }
+
+        this.orderCellList.push({
+          id: by + nameList,
+          status: t,
+          date: d,
+          next: '/pages/order/view?id=' + list[i]._id
+        })
+      }
+      this.$apply()
+    }
+  }
+}
+
+</script>

@@ -1,0 +1,136 @@
+<style lang="less">
+@import "./src/assets/unit.less";
+@import "./src/assets/s0Style.less";
+
+image {
+  margin-bottom: 40px !important;
+}
+
+input {
+  width: 260px-24px !important;
+  background: rgba(50, 52, 57, 1);
+  font-size: @fontUnit;
+  font-weight: 400;
+  color: #fff;
+}
+
+button {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: @weightSemibold;
+  color: rgba(74, 74, 74, 1);
+  background-color: #fff;
+}
+
+.Title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 1);
+  line-height: 2.06rem;
+  letter-spacing: 1px;
+  margin-bottom: 40px !important;
+}
+
+</style>
+<template>
+  <view class="container">
+    <!-- <image class="baseController" mode="aspectFit" src="../images/logo@2x.png"></image> -->
+    <view class="Title">阳琅贸易</view>
+    <input class="baseController" placeholder="账户名称" value="{{name}}" @input="inputName" />
+    <input password class="baseController" placeholder="密码" value="{{pass}}" @input="inputPass" />
+    <button loading="{{isLoadingLoginButton}}" @tap="LoginButton" class="baseController LoginButton">登录</button>
+    <view class="lineText">
+      <view @tap="GetNamePass" class="left">获取账户密码</view>
+      <view @tap="ForgetPass" class="right">忘记密码</view>
+    </view>
+  </view>
+  <view class="bottomArea posa">
+    <view @tap="HelpCenter" class="text">官网链接</view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import utils from '../utils/utils.js'
+import 'wepy-async-function'
+
+export default class Index extends wepy.page {
+  config = {
+    navigationBarTitleText: '登录',
+    navigationBarTextStyle: 'white',
+    navigationBarBackgroundColor: '#221D1C',
+    backgroundColor: '#221D1C',
+    disableScroll: true
+  }
+  components = {}
+  data = {
+    name: '',
+    pass: '',
+    isLoadingLoginButton: false
+  }
+  methods = {
+    inputName(e) {
+      this.name = e.detail.value
+    },
+    inputPass(e) {
+      this.pass = e.detail.value
+    },
+    async LoginButton() {
+      this.isLoadingLoginButton = true
+      if (this.name.length === 6) {
+        this.name = 'SH:' + this.name
+      }
+
+      let data = {
+        loginCode: this.name,
+        password: this.pass
+      }
+      let apiUser = await utils.apiSync('users/login/', 'POST', data)
+
+      this.role = apiUser.role
+      this.$parent.globalData.role = apiUser.role
+      this.$parent.globalData.apiUser = apiUser
+      this.isNext = apiUser.isMatch
+
+      if (apiUser.isMatch) {
+        wepy.setStorageSync('apiUser', apiUser)
+      } else {
+        utils.msg('用户名或密码不匹配')
+      }
+
+      this.nextPage()
+      this.isLoadingLoginButton = false
+      this.$apply()
+    },
+    GetNamePass() {
+      console.log('GetNamePass')
+      this.name = 'SH:308840'
+      this.pass = '888888'
+      // wepy.navigateTo({ url: '/pages/webview/view?url=' })
+    },
+    ForgetPass() {
+      console.log('ForgetPass')
+      this.name = 'SA:184818'
+      this.pass = '888888'
+      // wepy.navigateTo({ url: '/pages/webview/view?url=' })
+    },
+    HelpCenter() {
+      console.log('HelpCenter')
+      // this.name = 'dev'
+      // this.pass = '0$e8nE0'
+      wepy.navigateTo({ url: '/pages/webview/view?url=' })
+    }
+  }
+
+  onLoad() {}
+  nextPage() {
+    if (this.isNext) {
+      wepy.setStorageSync('role', this.role)
+
+      wx.navigateTo({
+        url: '/pages/s2Link?username=' + this.name
+      })
+    }
+  }
+}
+
+</script>

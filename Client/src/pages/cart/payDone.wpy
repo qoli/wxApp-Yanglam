@@ -1,0 +1,51 @@
+<style lang="less">
+@import (less) "./src/assets/unit.less";
+
+.container {
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-weight: 300;
+  font-size: @fontUnit;
+}
+
+.done {
+  margin: @fontUnit;
+  font-weight: @weightSemibold;
+}
+
+.none {
+  margin: @fontUnit;
+  color: #9B9B9B;
+}
+
+</style>
+<template>
+  <view class="container">
+    <view class="done" @tap='payFn'>{{payText}}</view>
+    <view class="none" @tap='backFn'>返回主界面</view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import utils from '../../utils/utils.js'
+
+export default class Index extends wepy.page {
+  config = {
+    navigationBarTitleText: '支付成功'
+  }
+  components = {}
+  data = {
+    payText: '商品支付成功'
+  }
+  methods = {
+    async payFn() {},
+    backFn() {
+      wx.switchTab({ url: '/pages/index' })
+    }
+  }
+  events = {}
+  onLoad() {}
+}
+
+</script>

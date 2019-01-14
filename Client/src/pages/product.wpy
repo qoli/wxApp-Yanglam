@@ -1,0 +1,312 @@
+<style lang="less">
+@import (less) "./src/assets/unit.less";
+
+.buyTop {
+  height: 3.2rem;
+  background-color: #221D1C;
+  font-size: 1.2rem;
+  font-weight: @weightSemibold;
+  color: rgba(255, 255, 255, 1);
+  line-height: 3.2rem;
+}
+
+.outerRing {
+  padding: 0.65rem;
+}
+
+.list {
+  display: flex;
+  padding-bottom: 0.35rem;
+  .unit {
+    width: 1.5rem;
+    height: 1.5rem;
+    background: rgba(0, 0, 0, 1);
+    border-radius: 0.25rem;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: @weightSemibold;
+    color: rgba(255, 255, 255, 1);
+    line-height: 1.5rem;
+    text-align: center;
+    margin-right: 0.4rem;
+  }
+  .price {
+    font-size: 1rem;
+    font-weight: @weightLight;
+    color: rgba(74, 74, 74, 1);
+  }
+}
+
+.bottomBar {
+  .title {
+    font-size: 0.69rem;
+    font-weight: @weightLight;
+    color: rgba(74, 74, 74, 1);
+    margin-right: 0.4rem;
+  }
+  .price {
+    flex: 1;
+    font-size: 1rem;
+    font-weight: @weightSemibold;
+    color: rgba(74, 74, 74, 1);
+  }
+  .button {
+    margin-right: @paddingUnit * 2;
+  }
+}
+
+.disabled {
+  opacity: 0.3
+}
+
+</style>
+<template>
+  <Popup :isShow.sync="isShow" @hide.user="hidePop">
+    <view class="PopupModel">
+      <view class="title text">已加入购物车</view>
+      <view class="name text">{{pop.name}}</view>
+      <view class="more text">{{pop.more}}</view>
+    </view>
+    <view class="CirButton" @tap="hidePop">
+      <image src="/assets/solid/check.svg" mode="aspectFit" />
+    </view>
+  </Popup>
+  <view class="container">
+    <view class="buyTop plr">{{pageTitle}}</view>
+    <view class="outerRing">
+      <view class="list {{activeClassA}}">
+        <view class="unit">支</view>
+        <view class="price">¥ {{priceItem}}</view>
+      </view>
+      <view class="list {{activeClassB}}">
+        <view class="unit">箱</view>
+        <view class="price">¥ {{priceBatch}}</view>
+      </view>
+    </view>
+    <view class="cellRepeat">
+      <repeat for="{{list}}" key="index" index="index" item="item">
+        <cell :item="item" @fn.user="cellFn"></cell>
+      </repeat>
+    </view>
+  </view>
+  <tip />
+  <view class="bottomBar plr {{iPhoneCompatible}}" hidden="{{userLvHidden}}">
+    <view class="title">总价</view>
+    <view class="price">¥ {{total}}</view>
+    <button disabled="{{disabled}}" class="bBlack button" type="" size="" @tap="cartAction">加入购物车</button>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import title from '../components/panel/title'
+import cell from '../components/panel/cell'
+import utils from '../utils/utils.js'
+import Popup from 'my-wpy-pop'
+
+export default class Index extends wepy.page {
+  config = {
+    navigationBarTitleText: '...',
+    enablePullDownRefresh: true
+  }
+  components = {
+    title: title,
+    cell: cell,
+    Popup: Popup
+  }
+  data = {
+    iPhoneCompatible: wepy.$instance.globalData.iPhoneCompatible,
+    pageTitle: '购买',
+    disabled: true,
+    activeClassA: '',
+    activeClassB: '',
+    quantity: 0,
+    basePrice: 0,
+    priceItem: 0,
+    priceBatch: 0,
+    priceType: 'Item',
+    total: 0,
+    list: [],
+    productID: '',
+    productName: 'ProductName',
+    userLvHidden: false,
+    isShow: false,
+    pop: {
+      name: '',
+      more: ''
+    }
+  }
+  methods = {
+    hidePop() {
+      this.isShow = false
+      this.$apply()
+    },
+    async cellFn(fn, value, height) {
+      switch (fn) {
+        case 'buy':
+          if (value === 'A') {
+            this.activeClassA = ''
+            this.activeClassB = 'disabled'
+            this.basePrice = this.priceItem
+            this.priceType = 'Item'
+          } else {
+            this.activeClassA = 'disabled'
+            this.activeClassB = ''
+            this.basePrice = this.priceBatch
+            this.priceType = 'Batch'
+          }
+
+          console.log(value, this.priceType)
+          this.total = (this.basePrice * this.quantity).toFixed(2)
+          break
+        case 'num':
+          var reg = new RegExp('^[0-9]*$')
+          if (!reg.test(value)) {
+            utils.msg('请输入数字')
+          } else {
+            this.quantity = value
+            this.total = this.basePrice * this.quantity
+            this.disabled = false
+          }
+          break
+        case 'removeProduct':
+          console.log('removeProduct')
+          // API GET
+          let r = await utils.apiSync('product/remove/' + wepy.$instance.globalData.apiUser.loginCode + '/' + this.productID)
+          utils.msg(r)
+          break
+      }
+      this.$apply()
+    },
+    async cartAction() {
+      var n
+      var t = '支'
+      console.log('购物车：' + 'cart_' + this.productID + '_' + this.priceType)
+      var cartData = utils.cache('cart')
+      if (!cartData) {
+        cartData = {}
+      }
+      if (cartData.hasOwnProperty('cart_' + this.productID + '_' + this.priceType)) {
+        console.log('购物车：' + '找到相同购物车')
+        n = Number(cartData['cart_' + this.productID + '_' + this.priceType].quantity) + Number(this.quantity)
+        cartData['cart_' + this.productID + '_' + this.priceType] = {
+          productID: this.productID,
+          quantity: n,
+          basePrice: this.basePrice,
+          priceType: this.priceType,
+          productName: this.productName
+        }
+      } else {
+        console.log('购物车：' + '新增')
+        n = Number(this.quantity)
+        cartData['cart_' + this.productID + '_' + this.priceType] = {
+          productID: this.productID,
+          quantity: Number(this.quantity),
+          basePrice: Number(this.basePrice),
+          priceType: this.priceType,
+          productName: this.productName
+        }
+      }
+
+      try {
+        wx.setStorageSync('cart', cartData)
+        if (this.priceType === 'Batch') {
+          t = '箱'
+        }
+        this.isShow = true
+        this.pop.name = this.productName
+        this.pop.more = '现在购物车有 ' + n + ' ' + t
+      } catch (e) {
+        console.log(e)
+      }
+    }
+
+  }
+  events = {}
+  async onLoad(option) {
+    this.productID = option.id
+    this.setNav()
+    if (wepy.$instance.globalData.userLv !== 2) {
+      this.userLvHidden = true
+    }
+  }
+  onShow() {
+    // wx.startPullDownRefresh()
+    this.update()
+  }
+  onPullDownRefresh() {
+    this.update()
+  }
+  async update() {
+    this.list = []
+    // API GET
+    let p = await utils.apiSync('product/list/' + wepy.$instance.globalData.apiUser.loginCode + '/' + this.productID)
+    this.priceItem = p.priceItem.toFixed(2)
+    this.priceBatch = p.priceBatch.toFixed(2)
+    this.basePrice = this.priceItem
+    this.productName = p.name
+
+    wx.setNavigationBarTitle({
+      title: p.name
+    })
+
+    // 销售或管理员
+    switch (wepy.$instance.globalData.userLv) {
+      case 0:
+        this.pageTitle = '商品操作'
+        this.list.push({
+          type: 'ValueNext',
+          text: '价格设定',
+          next: '/pages/product/price?id=' + this.productID
+        })
+        this.list.push({
+          fn: 'removeProduct',
+          type: 'ValueNext',
+          text: '删除商品'
+        })
+        break
+      case 1:
+        this.pageTitle = '商品操作'
+        this.list.push({
+          type: 'ValueNext',
+          text: '价格设定',
+          next: '/pages/product/price?id=' + this.productID
+        })
+        break
+      case 2:
+        // 商户
+        this.list = [{
+            fn: 'buy',
+            type: 'SwitchButton',
+            text: '购入单位',
+            typeData: {
+              valueA: '支',
+              valueB: '箱',
+              activateClassA: 'bBlack',
+              activateClassB: ''
+            }
+          },
+          {
+            fn: 'num',
+            type: 'Value',
+            text: '数量',
+            value: '输入数量',
+            typeData: {
+              type: 'number'
+            }
+          }
+        ]
+        break
+    }
+
+    wx.stopPullDownRefresh()
+    this.$apply()
+  }
+  setNav() {
+    wx.setNavigationBarColor({
+      frontColor: '#ffffff',
+      backgroundColor: '#221D1C'
+    })
+  }
+}
+
+</script>

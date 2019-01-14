@@ -1,0 +1,223 @@
+<style lang="less">
+@import (less) "./src/assets/unit.less";
+
+.empty {
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-weight: 300;
+}
+
+.total {
+  padding-left: @paddingUnit;
+  padding-right: @paddingUnit;
+  font-size: @fontUnit;
+  margin-bottom: @paddingUnit;
+  align-items: baseline;
+  .text {
+    font-size: @fontUnit*0.9;
+    margin-right: 0.5rem;
+    font-weight: @weightLight;
+  }
+  .number {
+    font-size: @fontUnit*1.2;
+    flex: 1;
+  }
+}
+
+.cartLine {
+  background-color: #EBEBEB;
+  height: 1px;
+}
+
+.PopupModel {
+  input {
+    border-bottom: 1px solid #EBEBEB;
+    width: 4rem;
+    text-align: center;
+  }
+  .more {
+    font-size: 0.69rem;
+  }
+}
+
+</style>
+<template>
+  <Popup :isShow.sync="isShow">
+    <view class="PopupModel">
+      <view class="title text">{{pop.title}}</view>
+      <view class="name text">
+        <input type="number" @blur="bindKeyInput" placeholder="{{pop.name}}" auto-focus/>
+      </view>
+      <view class="more text">{{pop.more}}</view>
+    </view>
+    <view class="CirButton" @tap="popFn">
+      <image src="/assets/solid/check.svg" mode="aspectFit" />
+    </view>
+  </Popup>
+  <!-- empty Text -->
+  <view class="container empty" hidden="{{!isHiddenShop}}">{{emptyText}}</view>
+  <!-- Shop -->
+  <view class="container" hidden="{{isHiddenShop}}">
+    <view class="cellRepeat">
+      <title :title.sync="title" />
+      <repeat for="{{list}}" key="index" index="index" item="item">
+        <cell :item="item" @fn.user="cellFn"></cell>
+      </repeat>
+    </view>
+    <view class="total flex flex-row">
+      <view class="text">
+        总价
+      </view>
+      <view class="number">
+        ¥ {{total}}
+      </view>
+      <view>
+        <button disabled="{{disabled}}" class="bBlack button" @tap="checkoutFn">结算</button>
+      </view>
+    </view>
+    <view class="cartLine" />
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import title from '../components/panel/title'
+import cell from '../components/panel/cartCell'
+import utils from '../utils/utils.js'
+import Popup from 'my-wpy-pop'
+
+export default class Index extends wepy.page {
+  config = {
+    navigationBarTitleText: '...',
+    enablePullDownRefresh: true
+  }
+  components = {
+    title: title,
+    cell: cell,
+    Popup: Popup
+  }
+  data = {
+    emptyText: '尚无商品加入购物车',
+    title: '商品',
+    list: [],
+    isHiddenShop: true,
+    orderCellList: [],
+    total: 0,
+    isShow: false,
+    pop: {
+      title: '',
+      name: '',
+      more: '',
+      fn: '',
+      value: 9999
+    },
+    cartData: {}
+  }
+  methods = {
+    bindKeyInput(v) {
+      if (v.detail.value !== '') {
+        this.pop.value = v.detail.value
+        console.log('輸入變化：', v.detail.value)
+      } else {
+        this.pop.value = 9999
+        console.log('輸入變化：', '無更改')
+      }
+    },
+    async popFn() {
+      this.isShow = false
+      await utils.sleep(600)
+      // console.log('提交變更：', this.pop.value)
+      if (Number(this.pop.value) !== 9999) {
+        this.cartData[this.pop.fn].quantity = Number(this.pop.value)
+        if (Number(this.pop.value) === 0) {
+          delete this.cartData[this.pop.fn]
+        }
+        // console.log('提交變更：', this.cartData[[this.pop.fn]])
+        wx.setStorageSync('cart', this.cartData)
+        wx.startPullDownRefresh()
+      }
+    },
+    cellFn(fn, value) {
+      this.isShow = true
+      this.pop.fn = fn
+      this.pop.title = this.cartData[fn].productName
+      this.pop.name = this.cartData[fn].quantity
+      var t = '支'
+      if (this.cartData[fn].priceType === 'Batch') {
+        t = '箱'
+      }
+      this.pop.more = t
+    },
+    checkoutFn() {
+      var orderData = {
+        price: Number(this.total),
+        data: this.cartData
+      }
+      wx.setStorageSync('order', orderData)
+      wepy.navigateTo({ url: '/pages/cart/address' })
+    }
+  }
+  events = {}
+  onLoad() {
+    // this.update()
+    wx.startPullDownRefresh()
+  }
+  onShow() {
+    this.update()
+  }
+  onPullDownRefresh() {
+    this.update()
+  }
+  update() {
+    this.list = []
+    this.total = 0
+    switch (wepy.$instance.globalData.userLv) {
+      case 0:
+      case 1:
+        // 管理员，销售
+        this.emptyText = '购物车仅供商户使用'
+        wx.setNavigationBarTitle({
+          title: '购物车'
+        })
+        break
+      default:
+        // 店铺
+        wx.setNavigationBarTitle({
+          title: '购物车'
+        })
+        this.shopUpdate()
+        break
+    }
+    wx.stopPullDownRefresh()
+  }
+  async shopUpdate() {
+    var cartData = utils.cache('cart')
+    this.cartData = cartData
+    if (cartData) {
+      this.isHiddenShop = false
+
+      for (var cartValue in cartData) {
+        // 统计总价
+        this.total = Number(this.total) + Number(cartData[cartValue].basePrice) * Number(cartData[cartValue].quantity)
+        this.total = Number(this.total).toFixed(2)
+        // 翻译文字
+        var type = '支'
+        if (cartData[cartValue].priceType === 'Batch') {
+          type = '箱'
+        }
+        this.list.push({
+          fn: cartValue,
+          text: cartData[cartValue].productName,
+          value: cartData[cartValue].basePrice,
+          number: cartData[cartValue].quantity,
+          type: type
+        })
+      }
+    } else {
+      this.isHiddenShop = true
+    }
+    this.$apply()
+  }
+}
+
+</script>

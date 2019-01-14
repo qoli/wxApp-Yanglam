@@ -1,0 +1,86 @@
+<style lang="less">
+@import (less) "./src/assets/unit.less";
+
+.container {
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-weight: 300;
+  font-size: @fontUnit;
+}
+
+.done {
+  margin: @fontUnit;
+}
+
+.none {
+  margin: @fontUnit;
+}
+
+</style>
+<template>
+  <view class="container">
+    <view class="done" @tap='payFn'>已完成支付，点击继续</view>
+    <view class="none" @tap='backFn'>支付遇到问题，重新支付</view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import utils from '../../utils/utils.js'
+
+export default class Index extends wepy.page {
+  config = {
+    navigationBarTitleText: '微信支付'
+  }
+  components = {}
+  data = {
+    status: 'NewOrder',
+    id: 0
+  }
+  methods = {
+    async payFn() {
+      if (this.status === 'NewOrder') {
+        var payData = utils.cache('pay')
+        payData['loginCode'] = wepy.$instance.globalData.apiUser.loginCode
+        // API POST
+        let r = await utils.apiSync('order/NewOrder', 'POST', payData)
+        if (r.isSuccess) {
+          // 清空本地缓存
+          wx.setStorageSync('pay', '')
+          wx.setStorageSync('order', '')
+          wx.setStorageSync('cart', '')
+          // 导航去成功 Page
+          wepy.navigateTo({ url: '/pages/cart/payDone' })
+        } else {
+          utils.msg(r.message)
+        }
+      }
+      if (this.status === 'RePay') {
+        let r = await utils.apiSync('order/RePay/' + this.id, 'POST', {})
+        if (r.isSuccess) {
+          // 导航去成功 Page
+          wepy.navigateTo({ url: '/pages/cart/payDone' })
+        } else {
+          utils.msg(r.message)
+        }
+      }
+    },
+    backFn() {
+      wx.navigateBack({
+        delta: 1
+      })
+    }
+  }
+  events = {}
+  onLoad(option) {
+    if (option.id === 'null') {
+      this.status = 'NewOrder'
+    } else {
+      this.status = 'RePay'
+      this.id = option.id
+    }
+
+  }
+}
+
+</script>

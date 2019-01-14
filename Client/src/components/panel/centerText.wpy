@@ -1,0 +1,27 @@
+<style lang="less">
+@import "./src/assets/unit.less";
+
+.centerText {
+  line-height:1.13rem;
+  font-size: @fontUnit;
+  color:rgba(155,155,155,1);
+  text-align: center;
+  padding: 0.44rem @fontUnit;;
+}
+
+</style>
+<template>
+  <view class="centerText">
+    {{text}}
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+
+export default class centerText extends wepy.component {
+  props = {
+    text: String
+  }
+}
+
+</script>

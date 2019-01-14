@@ -1,0 +1,72 @@
+<style lang="less">
+@import "./src/assets/unit.less";
+
+.navBar {
+  padding: 1rem @paddingUnit;
+  height: 2.5rem;
+  line-height: 2.5rem;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  .title {
+    font-size: 1.5rem;
+    font-weight: 100;
+    flex: 1;
+  }
+  .userData {
+    text-align: right;
+    .name {
+      line-height: 1.13rem;
+      font-size: @fontUnit;
+      font-weight: @weightSemibold;
+      color: rgba(74, 74, 74, 1);
+    }
+    .description {
+      font-size: 0.63rem;
+      font-weight: @weightLight;
+      color: rgba(74, 74, 74, 1);
+      line-height: 0.88rem;
+    }
+  }
+  .avatar {
+    margin-left: 0.3rem;
+    display: flex;
+    justify-content:center;
+    image {
+      width: 2rem;
+      height: 2rem;
+      background-color: #eee;
+      border-radius: 50%;
+    }
+  }
+}
+
+</style>
+<template>
+  <view class="navBar">
+    <view class="title">选购酒品</view>
+    <view class="userData">
+      <view class="info">
+        <view class="name">{{name}}</view>
+        <view class="description">{{description}}</view>
+      </view>
+    </view>
+    <view class="avatar">
+      <image style="" mode="aspectFill" src="{{avatar}}" />
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+
+export default class navbar extends wepy.component {
+  props = {
+    name: String,
+    description: String,
+    avatar: String
+  }
+}
+
+</script>
