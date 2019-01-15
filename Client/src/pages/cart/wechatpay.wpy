@@ -83,22 +83,43 @@ export default class Index extends wepy.page {
       this.id = option.id
     }
     await this.createOrder()
-    // this.pay()
   }
   async createOrder() {
     var payData = await utils.cache('pay')
     payData['loginCode'] = wepy.$instance.globalData.apiUser.loginCode
     var order = await utils.apiSync('order/newOrder', 'POST', payData)
-    this.text = order.message
     if (order.isSuccess) {
       this.orderData = order.data
-      await utils.sleep(600)
+      await utils.sleep(800)
+      this.text = order.message
       this.pay(order.data._id)
     }
+    this.$apply()
   }
   async pay(orderID) {
+    this.orderData['openid'] = await utils.cache('openid')
     var payment = await utils.apiSync('order/pay/' + orderID, 'POST', this.orderData)
-    console.log(payment)
+    await utils.sleep(800)
+    this.text = payment.message
+    // 发起支付
+    var pkgSignData = {
+      package: 'prepay_id=' + payment.data.prepay_id,
+      timeStamp: (Date.parse(new Date()) / 1000).toString()
+    }
+    var pkgSign = await utils.apiSync('order/packageSign', 'POST', pkgSignData)
+
+    wx.requestPayment({
+      'timeStamp': pkgSignData.timeStamp,
+      'nonceStr': pkgSign.data.nonce_str,
+      'package': pkgSignData.package,
+      'signType': 'MD5',
+      'paySign': pkgSign.data.sign,
+      'success': function(res) {
+        console.log('success')
+        console.log(res)
+      }
+    })
+    this.$apply()
   }
 }
 

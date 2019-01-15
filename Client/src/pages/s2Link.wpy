@@ -35,7 +35,7 @@ button {
   </view>
   <view class="bottomArea posa">
     <button class="baseController LoginButton" open-type="getUserInfo" lang="zh_CN" @getuserinfo="onGotUserInfo">授权用户信息</button>
-    <view @tap="jumpto" class="text">暂时跳过</view>
+    <view @tap="skip" class="text">暂时跳过（无法使用购物功能）</view>
   </view>
 </template>
 <script>
@@ -54,16 +54,13 @@ export default class Index extends wepy.page {
     username: ''
   }
   methods = {
-    jumpto() {
-      console.log('jumpto')
-      // wx.switchTab({ url: '/pages/index' })
+    async skip() {
+      console.log('skip')
+      // await utils.setOPENID()
       utils.goIndex()
     },
     async onGotUserInfo() {
-      let res = await wepy.login()
-      this.$parent.getUserInfo()
-      let resCodetosession = await utils.apiSync('login/codetosession/' + res.code)
-      await utils.apiSync('users/link/' + this.username + '/' + resCodetosession.openid)
+      await utils.setOPENID()
       utils.goIndex()
     }
   }

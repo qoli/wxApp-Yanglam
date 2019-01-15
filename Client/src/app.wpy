@@ -124,7 +124,7 @@ export default class extends wepy.app {
 
   globalData = {
     userInfo: null,
-    APIHOST: 'https://api.yanglam.cn/',
+    APIHOST: '',
     apiUser: {},
     iPhoneCompatible: 'notiPhoneX',
     role: null

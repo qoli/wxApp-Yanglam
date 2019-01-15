@@ -1,8 +1,10 @@
 var express = require('express');
 var router = express.Router();
-var randomstring = require("randomstring");
 var fetch = require("node-fetch");
 const querystring = require('querystring');
+const crypto = require('crypto');
+const {toXML} = require('jstoxml');
+const parser = require('xml2json');
 
 // Mongoose Schema
 var OrderModel = require('../Schema/OrderModel')
@@ -105,7 +107,7 @@ router.post('/newOrder', async function(req, res, next) {
             isRetail: isR
         })
 
-        tp = tp + req.body.productList[pl].basePrice
+        tp = tp + req.body.productList[pl].basePrice * req.body.productList[pl].quantity
     }
 
     var saveDate = new OrderModel({
@@ -140,46 +142,127 @@ router.post('/newOrder', async function(req, res, next) {
 
 // [POST] Pay
 router.post('/pay/:id', async function(req, res, next) {
-
     const response = await fetch('http://httpbin.org/ip')
     const ip = await response.json();
-    console.log(ip);
-
-    console.log(req.body)
 
     // https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_1
     // https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=4_3
-    // 支付文檔
-    var str32 = randomstring.generate(32);
-    var url = 'https://api.mch.weixin.qq.com/pay/unifiedorder';
+
+    // 準備數據
     var data = {
         appid: 'wxd81974d405fadd81',
-        mch_id: '1514801521',
+        mch_id: 1514801521,
         device_info: 'wxApp',
-        nonce_str: str32,
-        sign: '',
+        nonce_str: get_nonce_str(32),
         sign_type: 'MD5',
         body: '阳琅贸易-商品购买', // 商品简单描述，该字段请按照规范传递，具体请见参数规定
         out_trade_no: req.params.id + '0000000', // 商户系统内部订单号，要求32个字符内，只能是数字、大小写字母_-|*且在同一个商户号下唯一。
-        total_fee: req.body.totalPrice,
+        total_fee: parseInt(req.body.totalPrice * 100),
         spbill_create_ip: ip.origin,
-        notify_url: '',
-        trade_type: 'JSAPI'
+        notify_url: 'http://wxpay.wxutil.com/pub_v2/pay/notify.v2.php',
+        trade_type: 'JSAPI',
+        openid: req.body.openid
     }
 
+    // 顯示結果
+    data['sign'] = dataSign(data)
     console.log(data)
 
-    // 拼接API密钥
-    var stringA = querystring.stringify(data)
-    var stringSignTemp = stringA + "&key=192006250b4c09247ec02edce69f6a2d"
-    sign = MD5(stringSignTemp).toUpperCase()
-    sign = hash_hmac("sha256", stringSignTemp, key).toUpperCase()
-    console.log(sign)
+    // to XML
+    var xml = toXML(data);
+    xml = '<xml>' + xml + '</xml>'
+    console.log(xml)
+
+    // 统一支付接口
+    var wechatResponse = await fetch('https://api.mch.weixin.qq.com/pay/unifiedorder', {
+        method: 'post',
+        body: xml,
+        headers: {
+            'Content-Type': 'text/xml'
+        },
+    })
+    const r = await wechatResponse.text();
+    console.log(r)
+
+    // to JSON
+    var rJSON = parser.toJson(r);
+    rJSON = JSON.parse(rJSON)
+    console.log(rJSON)
+    console.log(rJSON.xml.return_msg)
+
+    // return 
+    switch (rJSON.xml.return_code) {
+    case 'FAIL':
+        res.json({
+            isSuccess: false,
+            message: rJSON.xml.return_msg
+        })
+        break;
+    case 'SUCCESS':
+        res.json({
+            isSuccess: true,
+            message: rJSON.xml.return_msg,
+            data: rJSON.xml,
+            nonceStr: data.nonceStr,
+            paySign: data.sign
+        })
+        break;
+    default:
+        res.json({
+            isSuccess: false,
+            message: rJSON.xml.return_msg
+        })
+        break;
+    }
+});
+
+// [POST] packageSign
+router.post('/packageSign', async function(req, res, next) {
+
+    // 準備數據
+    var data = {
+        appid: 'wxd81974d405fadd81',
+        nonce_str: get_nonce_str(32),
+        package: req.body.package,
+        signType: 'MD5',
+        timeStamp: req.body.timeStamp
+    }
+
+    data['sign'] = dataSign(data)
+    console.log(data)
+
+    // JSON to XML
+    var xml = toXML(data);
+    xml = '<xml>' + xml + '</xml>'
+    console.log(xml)
 
     res.json({
-        isSuccess: true,
         data: data
     })
 });
 
 module.exports = router;
+
+/**
+ * 生成指定长度的随机数
+ * @param {*int} len 
+ */
+const get_nonce_str = (len) => {
+    let str = '';
+    while (str.length < len) {
+        str += Math.random().toString(36).slice(2);
+    }
+    return str.slice(-len);
+}
+
+function dataSign(data) {
+    const key = 'deEHnEqQwfslTxqr94GNoQKeNr7GrYf6'
+    // js的默认排序即为ASCII的从小到大进行排序(字典排序)
+    let arr = Object.keys(data).sort().map(item => {
+        return `${item}=${data[item]}`;
+    });
+    let stringSignTemp = arr.join('&') + '&key=' + key;
+    // md5
+    var sign = crypto.createHash('md5').update(stringSignTemp, 'utf8').digest('hex').toUpperCase()
+    return sign
+}

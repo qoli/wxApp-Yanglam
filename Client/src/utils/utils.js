@@ -18,6 +18,14 @@ defaults.HOST = 'http://localhost:3000/'
 
 var Utils = {
 
+    async setOPENID() {
+        let res = await wepy.login()
+        wepy.$instance.getUserInfo()
+        let resCodetosession = await this.apiSync('login/codetosession/' + res.code)
+        wepy.setStorageSync('openid', resCodetosession.openid)
+        return resCodetosession.openid
+    },
+
     getHOST() {
         return defaults.HOST
     },

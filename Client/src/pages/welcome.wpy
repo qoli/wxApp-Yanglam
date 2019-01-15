@@ -68,12 +68,9 @@ export default class Index extends wepy.page {
   async autoLogin() {
     wx.clearStorageSync()
     console.log('[免密登入] 开始')
-    let res = await wepy.login()
-    this.$parent.getUserInfo()
-    let resCodetosession = await utils.apiSync('login/codetosession/' + res.code)
-    console.log(resCodetosession)
+    let openid = await utils.setOPENID()
     // API GET
-    let apiUser = await utils.apiSync('users/openidLogin/' + resCodetosession.openid)
+    let apiUser = await utils.apiSync('users/openidLogin/' + openid)
     if (apiUser.isSuccess) {
       // 設定 cache
       var resUC = await wepy.getUserInfo()
