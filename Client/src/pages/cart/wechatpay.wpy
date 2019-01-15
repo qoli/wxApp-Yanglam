@@ -20,8 +20,9 @@
 </style>
 <template>
   <view class="container">
-    <view class="done" @tap='payFn'>已完成支付，点击继续</view>
-    <view class="none" @tap='backFn'>支付遇到问题，重新支付</view>
+    <!-- <view class="done" @tap='payFn'>已完成支付，点击继续</view> -->
+    <!-- <view class="none" @tap='backFn'>支付遇到问题，重新支付</view> -->
+    <view class="none">{{text}}</view>
   </view>
 </template>
 <script>
@@ -35,6 +36,8 @@ export default class Index extends wepy.page {
   components = {}
   data = {
     status: 'NewOrder',
+    text: '准备订单',
+    orderData: {},
     id: 0
   }
   methods = {
@@ -72,14 +75,30 @@ export default class Index extends wepy.page {
     }
   }
   events = {}
-  onLoad(option) {
+  async onLoad(option) {
     if (option.id === 'null') {
       this.status = 'NewOrder'
     } else {
       this.status = 'RePay'
       this.id = option.id
     }
-
+    await this.createOrder()
+    // this.pay()
+  }
+  async createOrder() {
+    var payData = await utils.cache('pay')
+    payData['loginCode'] = wepy.$instance.globalData.apiUser.loginCode
+    var order = await utils.apiSync('order/newOrder', 'POST', payData)
+    this.text = order.message
+    if (order.isSuccess) {
+      this.orderData = order.data
+      await utils.sleep(600)
+      this.pay(order.data._id)
+    }
+  }
+  async pay(orderID) {
+    var payment = await utils.apiSync('order/pay/' + orderID, 'POST', this.orderData)
+    console.log(payment)
   }
 }
 

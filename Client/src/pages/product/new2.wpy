@@ -1,0 +1,122 @@
+<style lang="less"></style>
+<template>
+  <view class="container">
+    <!-- CELL -->
+    <view class="cellRepeat">
+      <title title="商品详情" />
+      <repeat for="{{list}}" key="index" index="index" item="item">
+        <cell :item="item" @fn.user="cellFn" />
+      </repeat>
+    </view>
+  </view>
+  <centerText :text.sync="text" />
+</template>
+<script>
+import wepy from 'wepy'
+import title from '../../components/panel/title'
+import cell from '../../components/panel/cell'
+import centerText from '../../components/panel/centerText'
+import utils from '../../utils/utils.js'
+
+export default class Index extends wepy.page {
+  config = {
+    navigationBarTitleText: '添加产品'
+  }
+  components = {
+    centerText: centerText,
+    title: title,
+    cell: cell
+  }
+  data = {
+    productID: 0,
+    productName: '',
+    blogLink: '',
+    text: '',
+    list: []
+  }
+  methods = {
+    async cellFn(fnName, value) {
+      switch (fnName) {
+        case 'remoteDetail':
+          // Blog 配置
+          var blogPostData = {
+            title: this.productName,
+            status: 'publish',
+            categories: '2'
+          }
+          var blogConfig = {
+            HOST: 'https://www.yanglam.cn/',
+            HEADER: {
+              'Authorization': 'Basic d3hBcHA6R080eCA4cWY2IEhqbkIgd08xVCB5Q0dxIGVtYU0=',
+              'Content-Type': 'application/json; charset=utf-8'
+            }
+          }
+          let blog = await utils.apiSync('wp-json/wp/v2/posts', 'POST', blogPostData, blogConfig)
+          this.blogLink = blog.link
+          var linkPostData = {
+            detailURL: this.blogLink
+          }
+          let r = await utils.apiSync('product/updateDatailURL/' + this.productID, 'POST', linkPostData)
+          this.text = r.message
+
+          this.list.push({
+            fn: 'openDetail',
+            type: 'ValueView',
+            text: '浏览器打开',
+            value: this.blogLink
+          })
+          this.list.push({
+            fn: 'copyDetailAddress',
+            type: 'ValueView',
+            text: '复制地址',
+            value: this.blogLink
+          })
+          break
+        case 'openDetail':
+          wepy.navigateTo({ url: '/pages/webview/view?url=' + this.blogLink })
+          break
+        case 'copyDetailAddress':
+          wx.setClipboardData({
+            data: this.blogLink,
+            success(res) {
+              wx.getClipboardData({
+                success(res) {
+                  console.log(res.data) // data
+                }
+              })
+            }
+          })
+          break
+      }
+      this.$apply()
+    }
+  }
+  events = {}
+  onLoad(option) {
+    console.log(option)
+    this.productID = option.id
+    this.getProduct()
+    this.update()
+  }
+  async update() {
+    this.list = [{
+      text: '商品',
+      type: 'ValueView',
+      value: this.productID
+    }, {
+      fn: 'remoteDetail',
+      text: '在服务器端生成详细页面',
+      type: 'ValueView',
+      value: '点击生成'
+    }]
+
+    this.$apply()
+  }
+  async getProduct() {
+    // 获得商品资料
+    let p = await utils.apiSync('product/list/' + wepy.$instance.globalData.apiUser.loginCode + '/' + this.productID)
+    this.productName = p.name
+  }
+}
+
+</script>

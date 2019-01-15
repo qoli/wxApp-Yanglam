@@ -16,8 +16,15 @@ export default class Index extends wepy.page {
   }
   events = {}
   onLoad(option) {
-    this.url = 'https://www.yanglam.cn' + option.url
-    console.log(this.url)
+    console.log(option)
+    var u = decodeURIComponent(option.url)
+    if (u.indexOf('https://www.yanglam.cn/') !== -1) {
+      this.url = u
+    } else {
+      this.url = 'https://www.yanglam.cn/' + u
+    }
+
+    console.log('[webview] ' + this.url)
   }
 }
 

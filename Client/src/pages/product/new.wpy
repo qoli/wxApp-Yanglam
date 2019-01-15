@@ -48,7 +48,7 @@ export default class Index extends wepy.page {
   }
   data = {
     postData: {
-      name: '等待输入',
+      name: '预览',
       imagesrc: '/images/image@2x.png',
       priceItem: 0,
       priceBatch: 0,
@@ -135,8 +135,13 @@ export default class Index extends wepy.page {
       })
 
       var r = JSON.parse(res.data)
-      // console.log(r)
+      console.log(r)
       utils.msg(r.message)
+      if (r.isSuccess) {
+        wx.navigateTo({
+          url: '/pages/product/new2?id=' + r.product._id
+        })
+      }
     } else {
       utils.msg('输入信息不完整')
     }
@@ -169,25 +174,8 @@ export default class Index extends wepy.page {
         type: 'number'
       }
     }, {
-      fn: 'priceLowItem',
-      text: '最低价（支，元）',
-      type: 'Value',
-      value: '0.00',
-      class: 'hidden',
-      typeData: {
-        type: 'number'
-      }
-    }, {
       fn: 'priceBatch',
       text: '价格（箱，元）',
-      type: 'Value',
-      value: '0.00',
-      typeData: {
-        type: 'number'
-      }
-    }, {
-      fn: 'priceLowBatch',
-      text: '最低价（箱，元）',
       type: 'Value',
       value: '0.00',
       typeData: {

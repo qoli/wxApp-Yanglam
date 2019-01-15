@@ -1,5 +1,5 @@
 <style lang="less">
-@import (less) "./src/assets/unit.less";
+  @import (less) "./src/assets/unit.less";
 
 .buyTop {
   height: 3.2rem;
@@ -89,6 +89,7 @@
       </repeat>
     </view>
   </view>
+  <centerText :text.sync="text" />
   <tip />
   <view class="bottomBar plr {{iPhoneCompatible}}" hidden="{{userLvHidden}}">
     <view class="title">总价</view>
@@ -101,6 +102,7 @@ import wepy from 'wepy'
 import title from '../components/panel/title'
 import cell from '../components/panel/cell'
 import utils from '../utils/utils.js'
+import centerText from '../components/panel/centerText'
 import Popup from 'my-wpy-pop'
 
 export default class Index extends wepy.page {
@@ -109,11 +111,13 @@ export default class Index extends wepy.page {
     enablePullDownRefresh: true
   }
   components = {
+    centerText: centerText,
     title: title,
     cell: cell,
     Popup: Popup
   }
   data = {
+    text: '',
     iPhoneCompatible: wepy.$instance.globalData.iPhoneCompatible,
     pageTitle: '购买',
     disabled: true,
@@ -238,15 +242,33 @@ export default class Index extends wepy.page {
   }
   async update() {
     this.list = []
-    // API GET
-    let p = await utils.apiSync('product/list/' + wepy.$instance.globalData.apiUser.loginCode + '/' + this.productID)
-    this.priceItem = p.priceItem.toFixed(2)
-    this.priceBatch = p.priceBatch.toFixed(2)
+    var productSearchCode = 'Guset'
+    if (this.$parent.globalData.role) {
+      productSearchCode = wepy.$instance.globalData.apiUser.loginCode
+      this.text = ''
+    } else {
+      this.text = '购买请登录用户'
+    }
+    // API GET PRODUCT
+    let p = await utils.apiSync('product/list/' + productSearchCode + '/' + this.productID)
+    try {
+      this.priceItem = p.priceItem.toFixed(2)
+      this.priceBatch = p.priceBatch.toFixed(2)
+    } catch (e) {
+      console.log(e)
+    }
+
     this.basePrice = this.priceItem
     this.productName = p.name
 
     wx.setNavigationBarTitle({
       title: p.name
+    })
+
+    this.list.push({
+      type: 'ValueNext',
+      text: '查看商品介绍',
+      next: '/pages/webview/view?url=' + encodeURIComponent(p.detailURL)
     })
 
     // 销售或管理员
@@ -275,6 +297,10 @@ export default class Index extends wepy.page {
       case 2:
         // 商户
         this.list = [{
+            type: 'ValueNext',
+            text: '查看商品介绍',
+            next: '/pages/webview/view?url=' + encodeURIComponent('?p=5')
+          }, {
             fn: 'buy',
             type: 'SwitchButton',
             text: '购入单位',

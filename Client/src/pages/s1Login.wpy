@@ -103,21 +103,21 @@ export default class Index extends wepy.page {
     },
     GetNamePass() {
       console.log('GetNamePass')
-      this.name = 'SH:308840'
+      this.name = 'SH:402950'
       this.pass = '888888'
       // wepy.navigateTo({ url: '/pages/webview/view?url=' })
     },
     ForgetPass() {
       console.log('ForgetPass')
-      this.name = 'SA:184818'
+      this.name = 'SA:104657'
       this.pass = '888888'
       // wepy.navigateTo({ url: '/pages/webview/view?url=' })
     },
     HelpCenter() {
       console.log('HelpCenter')
-      // this.name = 'dev'
-      // this.pass = '0$e8nE0'
-      wepy.navigateTo({ url: '/pages/webview/view?url=' })
+      this.name = 'SA:305118'
+      this.pass = '888888'
+      // wepy.navigateTo({ url: '/pages/webview/view?url=' })
     }
   }
 

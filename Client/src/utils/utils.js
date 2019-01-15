@@ -18,7 +18,12 @@ defaults.HOST = 'http://localhost:3000/'
 
 var Utils = {
 
+    getHOST() {
+        return defaults.HOST
+    },
+
     goIndex() {
+        wepy.$instance.syncCache()
         wx.reLaunch({
             url: '/pages/index'
         })
@@ -89,20 +94,21 @@ var Utils = {
         })
     },
 
-    apiSync(param, method = 'GET', data = {}) {
+    apiSync(param, method = 'GET', data = {}, conf = defaults) {
         if (param.indexOf('undefined') !== -1) {
+            console.log(param)
             return Promise.reject(new Error('存在 undefined 在 URL 上'))
         }
 
         let options = {
-            header: defaults.HEADER,
-            url: defaults.HOST + param,
+            header: conf.HEADER,
+            url: conf.HOST + param,
             data: data,
             method: method
         }
 
         return wepy.request(options).then((res) => {
-            if (res.statusCode === 200) {
+            if (res.statusCode === 200 || res.statusCode === 201) {
                 this.apiData(res, param)
                 if (res.data) {
                     return res.data
@@ -119,7 +125,7 @@ var Utils = {
             }
         }).catch((err) => {
             console.log('[API] ' + param + ' # catch err:', err)
-            if (err.errMsg === 'request:fail ') {
+            if (err.errMsg === 'request:fail') {
                 wx.showToast({
                     title: '服务器通信失败',
                     icon: 'none',
@@ -130,9 +136,6 @@ var Utils = {
                     title: '通信错误：' + err.errMsg,
                     icon: 'none',
                     duration: 3000
-                })
-                wx.navigateTo({
-                    url: '/pages/erorPage'
                 })
             }
             console.log('API options: ')

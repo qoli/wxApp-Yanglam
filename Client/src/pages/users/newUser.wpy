@@ -1,6 +1,4 @@
 <style lang="less">
-
-
 </style>
 <template>
   <view class="container">
@@ -162,7 +160,18 @@ export default class Index extends wepy.page {
       }
       // API POST
       let post = await utils.apiSync('users/newUser', 'POST', postData)
-      this.text = '已建立新的用户(' + post.role + ')，可使用代码(' + post.loginCode + ')和密码(' + post.password + ')登入系统'
+      this.text = '已建立新的用户(' + post.role + ')，可使用代码(' + post.loginCode + ')和密码(' + post.password + ')登入系统。此内容已复制到粘贴板。'
+      var clipboardData = '用户的账号：' + post.loginCode + ' ，密码：' + post.password + '。请搜索小程序【阳琅贸易】登录。'
+      wx.setClipboardData({
+        data: clipboardData,
+        success(res) {
+          wx.getClipboardData({
+            success(res) {
+              console.log(res.data) // data
+            }
+          })
+        }
+      })
       this.$apply()
     }
   }

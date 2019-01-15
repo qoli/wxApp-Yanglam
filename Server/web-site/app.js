@@ -8,17 +8,21 @@ var moment = require('moment');
 var app = express();
 
 // Mongoose
+var ip = getIPAdress();
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
-// mongodb 線上環境
-// mongoose.connect("mongodb://WXaJxwWEB2:WtHSu68q@mongodb:27017/db_yanglam", {
-//     useNewUrlParser: true
-// });
-
-// 本地開發環境
-mongoose.connect("mongodb://WXaJxwWEB2:WtHSu68q@localhost:27017/db_yanglam", {
-    useNewUrlParser: true
-});
+console.log('networkInterfaces: ' + ip)
+if (ip === '192.168.1.215') {
+    console.log('\x1b[36m%s\x1b[0m', '本地開發環境');
+    mongoose.connect("mongodb://WXaJxwWEB2:WtHSu68q@localhost:27017/db_yanglam", {
+        useNewUrlParser: true
+    });
+} else {
+    console.log('\x1b[33m%s\x1b[0m', '線上環境');
+    mongoose.connect("mongodb://WXaJxwWEB2:WtHSu68q@mongodb:27017/db_yanglam", {
+        useNewUrlParser: true
+    });
+}
 
 var db = mongoose.connection;
 db.on('error',
@@ -88,3 +92,17 @@ app.use(function(err, req, res, next) {
 });
 
 module.exports = app;
+
+//获取本机ip地址
+function getIPAdress() {
+    var interfaces = require('os').networkInterfaces();
+    for (var devName in interfaces) {
+        var iface = interfaces[devName];
+        for (var i = 0; i < iface.length; i++) {
+            var alias = iface[i];
+            if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal) {
+                return alias.address;
+            }
+        }
+    }
+}

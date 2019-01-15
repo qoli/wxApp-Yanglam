@@ -65,7 +65,7 @@ import utils from './utils/utils.js'
 export default class extends wepy.app {
   config = {
     pages: [
-      'pages/product/new',
+      // 'pages/product/new2',
       'pages/index',
       'pages/user',
       'pages/s1Login',
@@ -77,7 +77,8 @@ export default class extends wepy.app {
       'pages/users/allUser',
       'pages/users/resetPassword',
       'pages/product',
-      // 'pages/product/new',
+      'pages/product/new',
+      'pages/product/new2',
       'pages/product/price',
       'pages/product/priceTager',
       'pages/shop/list',
@@ -137,6 +138,12 @@ export default class extends wepy.app {
   onLaunch() {
     this.checkIsIPhoneX()
     this.syncCache()
+    this.setHOST()
+  }
+
+  async setHOST() {
+    this.globalData.APIHOST = utils.getHOST()
+    console.log('伺服器地址：' + this.globalData.APIHOST)
   }
 
   async syncCache() {
@@ -157,10 +164,11 @@ export default class extends wepy.app {
     }
 
     let userLv = await this.userLevel()
-    console.log('检查用户等级:', userLv)
+    console.log('检查用户權限:', userLv)
   }
 
   async userLevel() {
+    // console.log('用戶權限檢查()')
     switch (wepy.$instance.globalData.role) {
       case 'Administrator':
       case 'Developer':

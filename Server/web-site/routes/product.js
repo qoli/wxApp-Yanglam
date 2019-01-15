@@ -110,6 +110,7 @@ router.post('/new', upload.single('image'), async function(req, res, next) {
     try {
         let db = await saveDate.save()
         res.json({
+            isSuccess: true,
             product: db,
             message: '商品添加成功'
         })
@@ -143,6 +144,34 @@ router.post('/updatePrice/:pid', async function(req, res, next) {
             isSuccess: true,
             product: p,
             message: '商品已更新价格'
+        })
+    } else {
+        res.json({
+            isSuccess: false,
+            message: '遇到错误'
+        })
+    }
+});
+
+// [POST] updateDatailURL
+router.post('/updateDatailURL/:pid', async function(req, res, next) {
+
+    let p = await ProductModel.findOneAndUpdate({
+        _id: req.params.pid
+    }, {
+        $set: {
+            detailURL: req.body.detailURL
+        }
+    }, {
+        new: true
+    }
+    )
+
+    if (p) {
+        res.json({
+            isSuccess: true,
+            product: p,
+            message: '商品已更新詳細地址'
         })
     } else {
         res.json({

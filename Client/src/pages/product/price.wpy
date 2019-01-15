@@ -124,26 +124,10 @@ export default class Index extends wepy.page {
           type: 'number'
         }
       }, {
-        fn: 'priceLowItem',
-        type: 'Value',
-        text: '最低价（支）',
-        value: p.priceLowItem.toFixed(2),
-        typeData: {
-          type: 'number'
-        }
-      }, {
         fn: 'priceBatch',
         type: 'Value',
         text: '每箱价格',
         value: p.priceBatch.toFixed(2),
-        typeData: {
-          type: 'number'
-        }
-      }, {
-        fn: 'priceLowBatch',
-        type: 'Value',
-        text: '最低价（箱）',
-        value: p.priceLowBatch.toFixed(2),
         typeData: {
           type: 'number'
         }

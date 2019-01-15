@@ -60,7 +60,6 @@ export default class Index extends wepy.page {
   }
 
   onLoad() {
-    // wepy.navigateTo({ url: '/pages/webview/view?url=https://www.5mlstudio.com/15161112284329.html' })
     // 已登入
     if (this.$parent.globalData.userInfo) {
       wepy.switchTab({ url: '/pages/index' })
@@ -84,13 +83,9 @@ export default class Index extends wepy.page {
       wepy.setStorageSync('role', apiUser.data.role)
       wepy.setStorageSync('userInfo', uc)
 
-      // 变量同步
-      this.$parent.syncCache()
-
       // go
       console.log('[免密登入] 完成')
       utils.goIndex()
-      // wx.switchTab({ url: '/pages/index' })
     } else {
       utils.msg(apiUser.message)
       let self = this

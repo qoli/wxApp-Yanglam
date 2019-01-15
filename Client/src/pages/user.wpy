@@ -26,7 +26,8 @@ import centerText from '../components/panel/centerText'
 
 export default class Index extends wepy.page {
   config = {
-    navigationBarTitleText: '用户中心'
+    navigationBarTitleText: '用户中心',
+    enablePullDownRefresh: false
   }
   components = {
     title: title,
@@ -40,7 +41,7 @@ export default class Index extends wepy.page {
     title2: '',
     list: [],
     list2: [],
-    text: 'Version 0.0.2 2019年01月14日'
+    text: 'Version 0.0.3 2019年01月15日'
   }
   methods = {
     cellFn(action, evt) {
@@ -63,7 +64,13 @@ export default class Index extends wepy.page {
     }
   }
   events = {}
+  onPullDownRefresh() {
+    this.update()
+  }
   onLoad() {
+    this.update()
+  }
+  update() {
     if (wepy.$instance.globalData.userLv === 0) {
       this.Administrator()
     }

@@ -45,7 +45,7 @@ export default class Index extends wepy.page {
     this.update()
   }
   onLoad() {
-    // wepy.navigateTo({ url: '/pages/shop/view?shopCode=SH:728402' })
+    // wepy.navigateTo({ url: '/pages/cart/wechatpay' })
     // wx.switchTab({ url: '/pages/user' })
 
     // 更新內容

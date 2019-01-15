@@ -13,24 +13,32 @@ var ProductSchema = new Schema({
         type: String,
         required: [true, 'imageSrc is required']
     },
+    detailURL: {
+        type: String,
+        default: ''
+    },
     mimetype: {
         type: String,
         required: [true, 'mimetype is required']
     },
     priceItem: {
         type: Number,
+        default: 0,
         required: [true, 'priceItem is required']
     },
     priceBatch: {
         type: Number,
+        default: 0,
         required: [true, 'priceBatch is required']
     },
     priceLowItem: {
         type: Number,
+        default: 0,
         required: [true, 'priceLowItem is required']
     },
     priceLowBatch: {
         type: Number,
+        default: 0,
         required: [true, 'priceLowBatch is required']
     },
     isRemove: {
