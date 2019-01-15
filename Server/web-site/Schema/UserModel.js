@@ -1,4 +1,3 @@
-var md5 = require("blueimp-md5");
 var moment = require('moment');
 var mongoose = require('mongoose');
 

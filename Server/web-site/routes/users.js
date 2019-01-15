@@ -2,8 +2,6 @@
 var express = require('express');
 var router = express.Router();
 
-var md5 = require("blueimp-md5");
-
 // Mongoose Schema
 var RelateModel = require('../Schema/RelateModel')
 var UserModel = require('../Schema/UserModel')

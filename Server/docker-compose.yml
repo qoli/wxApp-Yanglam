@@ -6,6 +6,7 @@ networks:
 services:
   web:
     image: docker-node-express-mongoapp
+    restart: always
     container_name: node
     build: ./web-site
     command: npm start

@@ -11,11 +11,6 @@ var defaults = {
 // 開發用地址
 defaults.HOST = 'http://localhost:3000/'
 
-// console.log = (function(oriLogFunc) {
-//     return function(str) {}
-// })(console.log)
-// console.log('userName')
-
 var Utils = {
 
     async setOPENID() {

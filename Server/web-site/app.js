@@ -49,7 +49,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(function(req, res, next) {
     console.log('');
     console.log('> Time         :', moment().format('MMMM Do YYYY, h:mm:ss a'));
-    console.log('> Request Type :', req.method);
+    console.log('> Request Type :', '\x1b[33m' + req.method + '\x1b[0m');
     console.log('> Request Url  :', req.originalUrl);
     console.log('_');
     next();
