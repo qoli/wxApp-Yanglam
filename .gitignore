@@ -2,4 +2,5 @@
 .DS_Store
 node_modules
 Server/web-site/node_modules
+Server/data/
 Client/.wepycache
