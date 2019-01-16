@@ -60,7 +60,8 @@ export default class Index extends wepy.page {
       utils.goIndex()
     },
     async onGotUserInfo() {
-      await utils.setOPENID()
+      let openid = await utils.setOPENID()
+      await utils.apiSync('users/link/' + this.username + '/' + openid)
       utils.goIndex()
     }
   }

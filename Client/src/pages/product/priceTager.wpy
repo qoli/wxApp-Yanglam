@@ -142,7 +142,7 @@ export default class Index extends wepy.page {
         type: 'Value',
         text: '每支价格',
         typeData: {
-          type: 'number'
+          type: 'digit'
         },
         value: this.postData.priceItem
       }, {
@@ -150,7 +150,7 @@ export default class Index extends wepy.page {
         type: 'Value',
         text: '每箱价格',
         typeData: {
-          type: 'number'
+          type: 'digit'
         },
         value: this.postData.priceBatch
       }]
@@ -162,7 +162,7 @@ export default class Index extends wepy.page {
         text: '针对店铺',
         value: '店铺代码',
         typeData: {
-          type: 'number'
+          type: 'digit'
         }
       }]
 
@@ -171,7 +171,7 @@ export default class Index extends wepy.page {
         type: 'Value',
         text: '每支价格',
         typeData: {
-          type: 'number'
+          type: 'digit'
         },
         value: '不可低于 ' + p.priceLowItem.toFixed(2)
       }, {
@@ -179,7 +179,7 @@ export default class Index extends wepy.page {
         type: 'Value',
         text: '每箱价格',
         typeData: {
-          type: 'number'
+          type: 'digit'
         },
         value: '不可低于 ' + p.priceLowBatch.toFixed(2)
       }]

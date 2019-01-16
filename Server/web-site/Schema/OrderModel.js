@@ -16,6 +16,8 @@ var OrderSchema = new Schema({
     phone: String,
     nickname: String,
     totalPrice: Number,
+    prepay_id: String,
+    isPaying: Boolean,
     isPay: Boolean, //已支付
     isDeliver: Boolean, //已发送
     deliverSerial: String, //物流编号

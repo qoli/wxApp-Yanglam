@@ -317,7 +317,7 @@ export default class Index extends wepy.page {
             text: '数量',
             value: '输入数量',
             typeData: {
-              type: 'number'
+              type: 'digit'
             }
           }
         ]

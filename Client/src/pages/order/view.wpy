@@ -35,8 +35,9 @@ export default class Index extends wepy.page {
     title: '商品',
     cellList: [],
     productList: [],
-    buttonText: '支付订单',
+    buttonText: '',
     isPay: false,
+    isPaying: false,
     isDone: false,
     id: 0
   }
@@ -97,6 +98,11 @@ export default class Index extends wepy.page {
         this.isDone = true
       }
       if (orderData.data.isPay === false) {
+        t = '付款完毕'
+        this.buttonText = ''
+        this.isPay = true
+      }
+      if (orderData.data.isPaying === false) {
         t = '未付款'
         this.buttonText = '支付订单'
         this.isPay = true

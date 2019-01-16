@@ -9,9 +9,40 @@ var defaults = {
 }
 
 // 開發用地址
-defaults.HOST = 'http://localhost:3000/'
+// defaults.HOST = 'http://qoli.asuscomm.com:7000/'
 
 var Utils = {
+
+    async getAccessToken() {
+        // getAccessToken
+        var timeStamp = Date.now()
+        var accessTokenCache = this.cache('accessToken')
+        if (!accessTokenCache) {
+            console.log('accessTokenCache no')
+            return await this.setAccessToken()
+        }
+        if (accessTokenCache.expiresTime <= timeStamp) {
+            console.log('accessTokenCache expires ' + accessTokenCache.expiresTime + ' <= ' + timeStamp)
+            return await this.setAccessToken()
+        }
+        console.log('accessTokenCache by Cache')
+        return accessTokenCache
+    },
+
+    async setAccessToken() {
+        // setAccessToken
+        var timeStamp = Date.now()
+        var accessToken = await this.apiSync('login/accessToken')
+        var expiresTime = timeStamp + accessToken.expires_in * 1000
+        var accessTokenData = {
+            timeStamp: timeStamp,
+            accessToken: accessToken.access_token,
+            expiresIn: accessToken.expires_in,
+            expiresTime: expiresTime
+        }
+        wepy.setStorageSync('accessToken', accessTokenData)
+        return accessTokenData
+    },
 
     async setOPENID() {
         let res = await wepy.login()

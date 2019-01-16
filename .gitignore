@@ -4,3 +4,4 @@ node_modules
 Server/web-site/node_modules
 Server/data/
 Client/.wepycache
+Server/web-site/public/uploads

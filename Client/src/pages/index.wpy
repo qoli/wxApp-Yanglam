@@ -45,8 +45,12 @@ export default class Index extends wepy.page {
     this.update()
   }
   onLoad() {
-    // wepy.navigateTo({ url: '/pages/cart/wechatpay' })
+    // wepy.navigateTo({ url: '/pages/order/view?id=5c3dc57dbe9bfe6380fd25d7' })
+    // wepy.navigateTo({ url: '/pages/order/list' })
+    // wepy.navigateTo({ url: '/pages/cart/wechatpay?id=null' })
     // wx.switchTab({ url: '/pages/user' })
+
+    utils.getAccessToken()
 
     // 更新內容
     // wx.startPullDownRefresh()

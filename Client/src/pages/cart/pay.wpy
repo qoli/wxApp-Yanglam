@@ -80,12 +80,15 @@ export default class Index extends wepy.page {
   events = {}
   async onLoad(option) {
     var p = '?id=null'
+    var pay
     if (option.repay === 'true') {
       let repay = await utils.apiSync('order/RePay/' + option.id)
       this.postData.price = repay.totalPrice
       p = '?id=' + option.id
+      pay = utils.cache('pay')
+      this.postData.price = pay.price
     } else {
-      var pay = utils.cache('pay')
+      pay = utils.cache('pay')
       if (!pay) {
         utils.msg('订单寻找失败')
       } else {

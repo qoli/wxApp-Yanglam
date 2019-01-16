@@ -5,6 +5,8 @@ const querystring = require('querystring');
 const crypto = require('crypto');
 const {toXML} = require('jstoxml');
 const parser = require('xml2json');
+const {promisify} = require('util'); //<-- Require promisify
+const getIP = promisify(require('external-ip')());
 
 // Mongoose Schema
 var OrderModel = require('../Schema/OrderModel')
@@ -52,22 +54,54 @@ router.get('/listOne/:id', async function(req, res, next) {
     }
 });
 
-// [GET] RePay
+// [get] RePay 获得信息
 router.get('/RePay/:id', async function(req, res, next) {
-    let l = await OrderModel.findOne({
-        _id: req.params.id
-    })
-    res.json(l)
-});
-
-// [POST] RePay
-router.post('/RePay/:id', async function(req, res, next) {
 
     let l = await OrderModel.findOneAndUpdate({
         _id: req.params.id
     }, {
         $set: {
-            isPay: true
+            isPaying: true
+        }
+    }, {
+        new: true
+    }
+    )
+
+    res.json({
+        isSuccess: true,
+        data: l
+    })
+});
+
+// [get] 设定 paying 状态
+router.get('/paying/:id', async function(req, res, next) {
+
+    let l = await OrderModel.findOneAndUpdate({
+        _id: req.params.id
+    }, {
+        $set: {
+            isPaying: true
+        }
+    }, {
+        new: true
+    }
+    )
+
+    res.json({
+        isSuccess: true,
+        data: l
+    })
+});
+
+// [get] 设定 prepay_id
+router.get('/prepay/:id/:prepay', async function(req, res, next) {
+
+    let l = await OrderModel.findOneAndUpdate({
+        _id: req.params.id
+    }, {
+        $set: {
+            prepay_id: req.params.prepay
         }
     }, {
         new: true
@@ -113,11 +147,13 @@ router.post('/newOrder', async function(req, res, next) {
     var saveDate = new OrderModel({
         loginCode: req.body.loginCode,
         productList: dbProductList,
+        prepay_id: '',
         address: req.body.address.address,
         phone: req.body.address.phone,
         nickname: req.body.address.nickname,
         totalPrice: tp,
         isPay: false,
+        isPaying: false,
         isDeliver: false,
         deliverSerial: '' // 物流訂單號碼
     })
@@ -140,13 +176,13 @@ router.post('/newOrder', async function(req, res, next) {
     }
 });
 
+// https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_1
+// https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=4_3
 // [POST] Pay
 router.post('/pay/:id', async function(req, res, next) {
-    const response = await fetch('http://httpbin.org/ip')
-    const ip = await response.json();
+    const ip = await getIP()
 
-    // https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_1
-    // https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=4_3
+    console.log(req.body)
 
     // 準備數據
     var data = {
@@ -158,8 +194,8 @@ router.post('/pay/:id', async function(req, res, next) {
         body: '阳琅贸易-商品购买', // 商品简单描述，该字段请按照规范传递，具体请见参数规定
         out_trade_no: req.params.id + '0000000', // 商户系统内部订单号，要求32个字符内，只能是数字、大小写字母_-|*且在同一个商户号下唯一。
         total_fee: parseInt(req.body.totalPrice * 100),
-        spbill_create_ip: ip.origin,
-        notify_url: 'http://wxpay.wxutil.com/pub_v2/pay/notify.v2.php',
+        spbill_create_ip: ip,
+        notify_url: 'https://api.yanglam.cn/notice/notify_url/' + req.params.id,
         trade_type: 'JSAPI',
         openid: req.body.openid
     }
@@ -221,8 +257,8 @@ router.post('/packageSign', async function(req, res, next) {
 
     // 準備數據
     var data = {
-        appid: 'wxd81974d405fadd81',
-        nonce_str: get_nonce_str(32),
+        appId: 'wxd81974d405fadd81',
+        nonceStr: get_nonce_str(32),
         package: req.body.package,
         signType: 'MD5',
         timeStamp: req.body.timeStamp

@@ -121,7 +121,7 @@ export default class Index extends wepy.page {
         text: '每支价格',
         value: p.priceItem.toFixed(2),
         typeData: {
-          type: 'number'
+          type: 'digit'
         }
       }, {
         fn: 'priceBatch',
@@ -129,7 +129,7 @@ export default class Index extends wepy.page {
         text: '每箱价格',
         value: p.priceBatch.toFixed(2),
         typeData: {
-          type: 'number'
+          type: 'digit'
         }
       }]
     } else {

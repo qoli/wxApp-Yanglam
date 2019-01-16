@@ -171,7 +171,7 @@ router.post('/updateDatailURL/:pid', async function(req, res, next) {
         res.json({
             isSuccess: true,
             product: p,
-            message: '商品已更新詳細地址'
+            message: '商品已刷新详细地址位置'
         })
     } else {
         res.json({

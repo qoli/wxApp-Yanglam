@@ -1,5 +1,4 @@
 @import (less) './unit.less';
-
 //颜色
 .bGray {
     background: rgba(188, 188, 201, 1);
@@ -10,102 +9,89 @@
 .bGreen {
     background: rgba(46, 230, 116, 1);
 }
-
 //
 .ellipsis {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.mt1 {
-  margin-top:  @paddingUnit;
-}
-
-.mt2 {
-  margin-top:  @paddingUnit*2;
-}
-
-//
-.bottomBar {
-  width: 100%;
-  height: 3rem;
-  background: rgba(248, 248, 248, 0.82);
-  bottom: 0;
-  left: 0;
-  border-top: 1px solid #EBEBEB;
-  display: flex;
-  align-items: center;
-  line-height: 2.4rem;
-  position: fixed;
-}
-
-// Pop Model
-.Popup-pop {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  width: 100vw;
-  height: 100vh;
-
-}
-
-.mask {
-  background-color: rgba(0, 0, 0, 0.75) !important;
-}
-
-
-.PopupModel {
-  width: 300px;
-  height: 160px;
-  background: rgba(255, 255, 255, 1);
-  box-shadow: 0rem 6px 12px 0rem rgba(0, 0, 0, 0.12);
-  border-radius: 3px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  .text {
-    color: rgba(74, 74, 74, 1);
-    line-height: 1.13rem;
-    font-size: @fontUnit*0.9;
-  }
-  .title {
-    font-weight: @weightLight;
-    margin-bottom: 1.5rem;
-    margin-top: -1rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 60vw;
-  }
-  .name {
-    font-size: 1rem;
-    font-weight: @weightSemibold;
-    margin-bottom: 0.5rem;
-    text-align: center;
-  }
-  .more {
-    font-weight: @weightLight;
-  }
 }
-
+.mt1 {
+    margin-top: @paddingUnit;
+}
+.mt2 {
+    margin-top: @paddingUnit*2;
+}
+//
+.bottomBar {
+    width: 100%;
+    height: 3rem;
+    background: rgba(248, 248, 248, 0.82);
+    left: 0; // border-top: 1px solid #EBEBEB;
+    display: flex;
+    align-items: center;
+    line-height: 2.4rem;
+}
+// Pop Model
+.Popup-pop {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    width: 100vw;
+    height: 100vh;
+}
+.mask {
+    background-color: rgba(0, 0, 0, 0.75) !important;
+}
+.PopupModel {
+    width: 300px;
+    height: 160px;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0rem 6px 12px 0rem rgba(0, 0, 0, 0.12);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    .text {
+        color: rgba(74, 74, 74, 1);
+        line-height: 1.13rem;
+        font-size: @fontUnit*0.9;
+    }
+    .title {
+        font-weight: @weightLight;
+        margin-bottom: 1.5rem;
+        margin-top: -1rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 60vw;
+    }
+    .name {
+        font-size: 1rem;
+        font-weight: @weightSemibold;
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+    .more {
+        font-weight: @weightLight;
+    }
+}
 .CirButton {
-  width: 32px;
-  height: 32px;
-  background: #000;
-  border-radius: 50%;
-  color: #fff;
-  text-align: center;
-  line-height: 32px;
-  font-size: 12px;
-  margin-top: -16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  image {
-    width: 12px;
-    height: 12px;
-  }
+    width: 32px;
+    height: 32px;
+    background: #000;
+    border-radius: 50%;
+    color: #fff;
+    text-align: center;
+    line-height: 32px;
+    font-size: 12px;
+    margin-top: -16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    image {
+        width: 12px;
+        height: 12px;
+    }
 }

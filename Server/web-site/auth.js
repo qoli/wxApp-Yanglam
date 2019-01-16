@@ -10,6 +10,14 @@ var auth = function(req, res, next) {
         return next();
     }
 
+    if (req.originalUrl.indexOf('/notice') === 0) {
+        return next();
+    }
+
+    if (req.originalUrl.indexOf('/robots.txt') === 0) {
+        return next();
+    }
+
     var user = basicAuth(req);
 
     if (!user || !user.name || !user.pass) {

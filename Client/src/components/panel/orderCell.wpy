@@ -97,6 +97,7 @@
     <view class="text ellipsis">
       <view class="lineOne ellipsis">{{item.id}}</view>
       <view class="lineTwo">
+        <view wx:if="{{item.status == '付款完毕'}}" class="textBlack colorGreen">{{item.status}}</view>
         <view wx:if="{{item.status == '未付款'}}" class="textBlack colorOrange">{{item.status}}</view>
         <view wx:if="{{item.status == '未发货'}}" class="textBlack colorGreen">{{item.status}}</view>
         <view wx:if="{{item.status == '待收货'}}" class="textBlack colorGray">{{item.status}}</view>

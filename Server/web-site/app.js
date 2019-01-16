@@ -4,11 +4,12 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var moment = require('moment');
+var ip = require('ip');
 
 var app = express();
 
 // Mongoose
-var ip = getIPAdress();
+var ip = ip.address()
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 console.log('networkInterfaces: ' + ip)
@@ -71,6 +72,7 @@ app.use('/login', require('./routes/login'));
 app.use('/product', require('./routes/product'));
 app.use('/target', require('./routes/target'));
 app.use('/order', require('./routes/order'));
+app.use('/notice', require('./routes/notice'));
 
 // 
 app.use('/public', require('./routes/public'));
@@ -92,17 +94,3 @@ app.use(function(err, req, res, next) {
 });
 
 module.exports = app;
-
-//获取本机ip地址
-function getIPAdress() {
-    var interfaces = require('os').networkInterfaces();
-    for (var devName in interfaces) {
-        var iface = interfaces[devName];
-        for (var i = 0; i < iface.length; i++) {
-            var alias = iface[i];
-            if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal) {
-                return alias.address;
-            }
-        }
-    }
-}

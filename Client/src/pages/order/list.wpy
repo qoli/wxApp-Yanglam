@@ -1,14 +1,18 @@
 <style lang="less">
 @import (less) "./src/assets/unit.less";
+
 .ButtonList {
   padding: @paddingUnit;
+
   button {
     margin-right: 10px;
   }
+
   .none {
     flex: 1;
   }
 }
+
 </style>
 <template>
   <view class="ButtonList flex flex-row">
@@ -83,6 +87,9 @@ export default class Index extends wepy.page {
           t = '未发货'
         }
         if (list[i].isPay === false) {
+          t = '付款完毕'
+        }
+        if (list[i].isPaying === false) {
           t = '未付款'
         }
 

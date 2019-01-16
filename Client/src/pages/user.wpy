@@ -41,7 +41,7 @@ export default class Index extends wepy.page {
     title2: '',
     list: [],
     list2: [],
-    text: 'Version 0.0.3 2019年01月15日'
+    text: 'Version 0.0.4 2019年01月15日'
   }
   methods = {
     cellFn(action, evt) {

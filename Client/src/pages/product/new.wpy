@@ -171,7 +171,7 @@ export default class Index extends wepy.page {
       type: 'Value',
       value: '0.00',
       typeData: {
-        type: 'number'
+        type: 'digit'
       }
     }, {
       fn: 'priceBatch',
@@ -179,7 +179,7 @@ export default class Index extends wepy.page {
       type: 'Value',
       value: '0.00',
       typeData: {
-        type: 'number'
+        type: 'digit'
       }
     }, {
       fn: 'sort',
@@ -187,7 +187,7 @@ export default class Index extends wepy.page {
       type: 'Value',
       value: '数字越小，越靠前',
       typeData: {
-        type: 'number'
+        type: 'digit'
       }
     }, {
       fn: 'saveFn',

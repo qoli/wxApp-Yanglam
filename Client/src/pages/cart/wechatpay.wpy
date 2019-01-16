@@ -22,7 +22,7 @@
   <view class="container">
     <!-- <view class="done" @tap='payFn'>已完成支付，点击继续</view> -->
     <!-- <view class="none" @tap='backFn'>支付遇到问题，重新支付</view> -->
-    <view class="none">{{text}}</view>
+    <view @tap='payFn' class="none">{{text}}</view>
   </view>
 </template>
 <script>
@@ -35,37 +35,18 @@ export default class Index extends wepy.page {
   }
   components = {}
   data = {
-    status: 'NewOrder',
+    status: 'newOrder',
+    payDone: false,
     text: '准备订单',
     orderData: {},
-    id: 0
+    orderID: ''
   }
   methods = {
     async payFn() {
-      if (this.status === 'NewOrder') {
-        var payData = utils.cache('pay')
-        payData['loginCode'] = wepy.$instance.globalData.apiUser.loginCode
-        // API POST
-        let r = await utils.apiSync('order/NewOrder', 'POST', payData)
-        if (r.isSuccess) {
-          // 清空本地缓存
-          wx.setStorageSync('pay', '')
-          wx.setStorageSync('order', '')
-          wx.setStorageSync('cart', '')
-          // 导航去成功 Page
-          wepy.navigateTo({ url: '/pages/cart/payDone' })
-        } else {
-          utils.msg(r.message)
-        }
-      }
-      if (this.status === 'RePay') {
-        let r = await utils.apiSync('order/RePay/' + this.id, 'POST', {})
-        if (r.isSuccess) {
-          // 导航去成功 Page
-          wepy.navigateTo({ url: '/pages/cart/payDone' })
-        } else {
-          utils.msg(r.message)
-        }
+      if (!this.payDone) {
+        this.text = '重新支付'
+        await utils.sleep(800)
+        this.pay(this.orderID)
       }
     },
     backFn() {
@@ -77,12 +58,14 @@ export default class Index extends wepy.page {
   events = {}
   async onLoad(option) {
     if (option.id === 'null') {
-      this.status = 'NewOrder'
+      this.status = 'newOrder'
+      await this.createOrder()
     } else {
       this.status = 'RePay'
-      this.id = option.id
+      this.orderID = option.id
+      this.text = '重新支付'
+      this.pay(this.orderID)
     }
-    await this.createOrder()
   }
   async createOrder() {
     var payData = await utils.cache('pay')
@@ -90,36 +73,84 @@ export default class Index extends wepy.page {
     var order = await utils.apiSync('order/newOrder', 'POST', payData)
     if (order.isSuccess) {
       this.orderData = order.data
+      this.orderID = order.data._id
       await utils.sleep(800)
       this.text = order.message
-      this.pay(order.data._id)
+      this.pay(this.orderID)
     }
     this.$apply()
   }
   async pay(orderID) {
+    var prepayID
+    let orderData
+    if (this.status === 'RePay') {
+      orderData = await utils.apiSync('order/listOne/' + orderID)
+      this.orderData = orderData.data
+      prepayID = orderData.data.prepay_id
+    }
     this.orderData['openid'] = await utils.cache('openid')
     var payment = await utils.apiSync('order/pay/' + orderID, 'POST', this.orderData)
-    await utils.sleep(800)
-    this.text = payment.message
-    // 发起支付
-    var pkgSignData = {
-      package: 'prepay_id=' + payment.data.prepay_id,
-      timeStamp: (Date.parse(new Date()) / 1000).toString()
+    if (this.status === 'newOrder') {
+      await utils.apiSync('order/prepay/' + orderID + '/' + payment.data.prepay_id)
+      prepayID = payment.data.prepay_id
     }
-    var pkgSign = await utils.apiSync('order/packageSign', 'POST', pkgSignData)
 
-    wx.requestPayment({
-      'timeStamp': pkgSignData.timeStamp,
-      'nonceStr': pkgSign.data.nonce_str,
-      'package': pkgSignData.package,
-      'signType': 'MD5',
-      'paySign': pkgSign.data.sign,
-      'success': function(res) {
-        console.log('success')
-        console.log(res)
-      }
-    })
+    this.text = payment.message
     this.$apply()
+    if (payment.isSuccess) {
+      await utils.sleep(800)
+      this.text = '发起支付'
+      this.$apply()
+      // 发起支付
+      var pkgSignData = {
+        package: 'prepay_id=' + prepayID,
+        timeStamp: (Date.parse(new Date()) / 1000).toString()
+      }
+      var pkgSign = await utils.apiSync('order/packageSign', 'POST', pkgSignData)
+
+      var that = this
+
+      wx.requestPayment({
+        'timeStamp': pkgSignData.timeStamp,
+        'nonceStr': pkgSign.data.nonceStr,
+        'package': pkgSignData.package,
+        'signType': 'MD5',
+        'paySign': pkgSign.data.sign,
+        'success': async function(res) {
+          console.log('success')
+          console.log(res)
+          that.text = '支付完毕'
+          that.payDone = true
+          that.$apply()
+
+          // 同步结果
+          var paying = await utils.apiSync('order/paying/' + orderID)
+          that.text = '同步订单结果'
+          that.$apply()
+          console.log(paying)
+          await utils.sleep(800)
+          if (paying.isSuccess) {
+            // 清空本地缓存
+            wx.setStorageSync('pay', '')
+            wx.setStorageSync('order', '')
+            wx.setStorageSync('cart', '')
+            await utils.sleep(800)
+
+            // 导航去成功 Page
+            wepy.navigateTo({ url: '/pages/cart/payDone' })
+          } else {
+            that.text = '同步订单结果失败，请联络客服。你的订单 ID：' + orderID
+            that.$apply()
+          }
+        },
+        'fail': function(res) {
+          console.log('fail')
+          that.text = '支付取消，点击重试'
+          that.payDone = false
+          that.$apply()
+        }
+      })
+    }
   }
 }
 
