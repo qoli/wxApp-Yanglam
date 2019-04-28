@@ -60,6 +60,8 @@ export default class Index extends wepy.page {
   }
 
   onLoad() {
+    console.log('[welcome] 已登入')
+    console.log(this.$parent.globalData.userInfo)
     // 已登入
     if (this.$parent.globalData.userInfo) {
       wepy.switchTab({ url: '/pages/index' })
