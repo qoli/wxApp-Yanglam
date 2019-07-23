@@ -61,6 +61,7 @@ page {
 import wepy from 'wepy'
 import 'wepy-async-function'
 import utils from './utils/utils.js'
+import './utils/mtj-wx-sdk'
 
 export default class extends wepy.app {
   config = {

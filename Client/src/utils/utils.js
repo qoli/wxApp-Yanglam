@@ -10,7 +10,7 @@ var defaults = {
 
 // 開發用地址
 // defaults.HOST = 'http://qoli.asuscomm.com:7000/'
-defaults.HOST = 'http://localhost:7000/'
+// defaults.HOST = 'http://localhost:7000/'
 
 var Utils = {
 

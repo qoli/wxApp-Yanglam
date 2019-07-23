@@ -27,6 +27,7 @@ if (ip === '192.168.1.215') {
 
 var db = mongoose.connection;
 db.on('error',
+    console.log('第一次運行 API 伺服器，請初始化管理員和開發者賬戶。')
     console.error.bind(console, 'connection error:')
 );
 db.once('open', function() {

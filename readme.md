@@ -12,11 +12,17 @@ Blog 基於 LNMP 運行，并無基於 Docker 運行。
 
 #### 更新 SSL 證書指令
 
+需要 root 身份執行
+
 ```shell
+su
 export DP_Id="66453"
 export DP_Key="bfc5dc5105beab8b8d26c7ede19a24e3"
 acme.sh --issue --dns dns_dp -d yanglam.cn -d *.yanglam.cn
+lnmp restart
 ```
+
+
 
 
 
