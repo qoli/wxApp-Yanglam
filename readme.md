@@ -16,8 +16,8 @@ Blog 基於 LNMP 運行，并無基於 Docker 運行。
 
 ```shell
 su
-export DP_Id="66453"
-export DP_Key="bfc5dc5105beab8b8d26c7ede19a24e3"
+export DP_Id="﹣"
+export DP_Key="﹣"
 acme.sh --issue --dns dns_dp -d yanglam.cn -d *.yanglam.cn
 lnmp restart
 ```
