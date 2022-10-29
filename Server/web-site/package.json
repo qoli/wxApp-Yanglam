@@ -27,7 +27,7 @@
     "xml2json": "^0.11.2"
   },
   "devDependencies": {
-    "browser-sync": "^2.24.6",
+    "browser-sync": "^2.27.10",
     "eslint": "^5.4.0",
     "gulp": "^3.9.1",
     "gulp-nodemon": "^2.2.1",
